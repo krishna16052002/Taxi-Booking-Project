@@ -1,0 +1,186 @@
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-sm-6 col-sm-push-6">
+      <mat-card>
+        <div class="parentFormContainer">
+          <div id="formContainer">
+            <!-- 1st form  -->
+            <form class="container" [formGroup]="createridesForm">
+              <mat-form-field class="mat-40">
+                <mat-label>Country</mat-label>
+                <!-- <input matInput> -->
+                <mat-select formControlName="countrycode">
+                  <mat-option value="{{ code }}" *ngFor="let code of usercountrycodedata">
+                    {{ code }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field class="mat-50">
+                <mat-label>Phone</mat-label>
+                <input matInput formControlName="phonenumber" type="number" (input)="searchphonenumber()" />
+              </mat-form-field>
+              <mat-card-footer>
+                <div style="margin: 2%; text-align: right">
+                  <!-- <button mat-raised-button type="submit" color="primary">Save</button> -->
+                  <button mat-raised-button color="warn" (click)="getdetails()" [disabled]="isButtonDisabled">
+                    Getdetails
+                  </button>
+                </div>
+              </mat-card-footer>
+            </form>
+            <!-- 2nd form for userdetails  -->
+            <form [formGroup]="userdetailsform" *ngIf="isshow">
+              <mat-form-field class="mat-10">
+                <mat-label>Name : </mat-label>
+                <input matInput formControlName="username" />
+              </mat-form-field>
+              <mat-form-field class="mat-10">
+                <mat-label>Phone Number : </mat-label>
+                <input matInput formControlName="userphonenumber" />
+              </mat-form-field>
+              <mat-form-field class="mat-10">
+                <mat-label>Email : </mat-label>
+                <input matInput formControlName="useremail" />
+              </mat-form-field>
+              <mat-card-footer>
+                <div style="margin: 2%; text-align: right">
+                  <button mat-raised-button (click)="next()" color="primary">
+                    Next
+                  </button>
+                </div>
+              </mat-card-footer>
+            </form>
+
+            <form [formGroup]="createridesForm">
+              <!-- Previous form fields -->
+              <mat-form-field class="mat-10">
+                <mat-label>Starting Location :</mat-label>
+                <!-- <input matInput formControlName="destinationlocation" placeholder="Search for a city" #searchBox /> -->
+                <input matInput formControlName="startinglocation" placeholder="Search for a city" #searchBox
+                  id="startingpalce" />
+              </mat-form-field>
+              <mat-form-field class="mat-10">
+                <mat-label>Destination Location :</mat-label>
+                <!-- <input matInput formControlName="destinationlocation" placeholder="Search for a city" #searchBox /> -->
+                <input matInput formControlName="destinationlocation" placeholder="Search for a city" #destinationBox />
+              </mat-form-field>
+              <mat-form-field class="mat-20">
+                <mat-label>waypoints Location :</mat-label>
+                <input  matInput  type="text" placeholder="Enter Stops" #waypointInput id="waypoint" />
+              </mat-form-field>
+
+              <mat-card-footer>
+              <button (click)="addWaypoint()"  mat-raised-button color="primary" style="margin-left: 5px;" [disabled]="stops == stopsCounter"
+              type="button">
+              Add Way Point
+            </button>
+
+          </mat-card-footer>
+
+          <div *ngFor="let waypoint of waypoints; let i = index">
+            <mat-form-field class="mat-30">
+              <mat-label>waypoints Location :</mat-label>
+              <input  matInput  type="text" placeholder="Enter Stops" [value]="waypoint" disabled  #waypointInput id="waypoint" />
+            </mat-form-field>
+            <!-- <input type=" text" [value]="waypoint" disabled class="form-control" id="added-waypoint" /> -->
+            <mat-card-footer><button (click)="removeWaypoint(i)"  mat-raised-button color="primary">
+              Remove Way Point
+            </button></mat-card-footer>
+
+          </div>
+              <mat-card-footer>
+                <div style="margin: 3%; text-align: right">
+                  <button mat-raised-button color="primary" (click)="getroute()"  [disabled]="getroutebutton">
+
+                    Get Route
+                  </button>
+                </div>
+              </mat-card-footer>
+            </form>
+          </div>
+        </div>
+      </mat-card>
+      <mat-card>
+        <form [formGroup]="createridesForm" (ngSubmit)="OnSubmit()">
+          <div class="list-group mb-2">
+            <a class="list-group-item list-group-item-action">Estimate Distance : {{ totalDistance }} Km</a>
+            <a class="list-group-item list-group-item-action">Estimate Time : {{ totalHours }} hours
+              {{ totalMinutes }} minutes</a>
+            <a class="list-group-item list-group-item-action" *ngFor="let pricing of vehiclesPricing">{{
+              pricing.vehicle_id.vehiclename }} | Estimate Fare :
+              {{ pricing.estimateFare }}</a>
+              <a class="list-group-item list-group-item-action">
+                <select class="form-select" #vehicletype (change)="selectvehicle(vehicletype.value)"
+                formControlName="vehicletype">
+                <option value="">Select vehicle type</option>
+                <option [value]="pricing.vehicle_id._id" *ngFor="let pricing of vehiclesPricing">
+                  {{ pricing.vehicle_id.vehiclename | titlecase }}
+                </option>
+              </select>
+            </a>
+            <a class="list-group-item list-group-item-action">
+              <select class="form-select" #payment (change)="selectpayment(payment.value)"
+              formControlName="paymentoption">
+              <option value="">Select Payment type</option>
+              <option value="cash">Cash</option>
+              <option value="card">Card</option>
+            </select>
+            </a>
+            <a class="list-group-item list-group-item-action">
+              <select class="form-select" #ridetime (change)="selectridetime(ridetime.value)"
+              formControlName="rideTime">
+              <option value="">Select Ride Time</option>
+                <option value="bookNow">Book Now</option>
+                <option value="schedule">Schedule</option>
+              </select>
+            </a>
+            <div class="d-flex gap-2">
+              <input type="date" class="form-control" formControlName="date" />
+              <input type="time" class="form-control" formControlName="time" />
+            </div>
+          </div>
+          <div><button mat-raised-button color="primary" type="submit">
+              Book Ride
+            </button></div>
+        </form>
+      </mat-card>
+    </div>
+    <div class="col-sm-6 col-sm-pull-6" style="height: 50%" id="map"></div>
+  </div>
+</div>
+
+<!--
+  <div class="d-flex justify-content-between" *ngFor="let stops of stop; let i = index" >
+    <div> <mat-form-field >
+    <mat-label> Way Point Location :</mat-label>
+    <input matInput formControlName="stops.name" placeholder="Search for a city"  #waypointBox />
+  </mat-form-field></div>
+
+</div> -->
+<!-- <div formArrayName="waypointlocation">
+  <div class="d-flex justify-content-between" *ngFor="let stop of getWaypointControls(); let i = index"
+  [formGroupName]="i">
+  <div>
+    <mat-form-field>
+      <mat-label>Way Point Location:</mat-label>
+        <input matInput formControlName="name" placeholder="Search for a city" #waypoint
+          id="waypointBox{{ i }}" /> -->
+<!-- [attr.id]="'waypointBox' + i" -->
+
+<!-- <input  type="text" id="waypoint{{ i + 1 }}" (input)="waypoint($event.target)"
+  [formControlName]="i" placeholder="Way Point{{ i + 1 }}" /> -->
+
+  <!-- <input matInput formControlName="name" placeholder="Search for a city" #waypoint
+[id]="'waypointBox' + i" (input)="onInputChange($event.target.value, i)" /> -->
+
+<!-- </mat-form-field>
+</div>
+  </div>
+</div> -->
+
+<!-- <button mat-raised-button color="primary" style="margin-right: 3%" (click)="addItem()">
+  Add Way point
+</button> -->
+<!-- <button mat-raised-button color="primary" style="margin-right: 3%" (click)="addwaypoint()">
+  Add Way point
+</button> -->

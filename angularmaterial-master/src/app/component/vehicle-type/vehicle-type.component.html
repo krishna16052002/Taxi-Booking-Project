@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Document</title>
+</head>
+
+<body>
+  <div class="button">
+    <button mat-button mat-stroked-button color="primary" (click)="OnAddbuttonclick()">
+      <mat-icon>add_circle</mat-icon>Add
+    </button>
+  </div>
+  <div class="parentFormContainer">
+    <div id="formContainer" *ngIf="isshow">
+      <h2 class="mb-3">Vehicle type</h2>
+      <form class="container" [formGroup]="vehicleform" (ngSubmit)="OnSubmit()">
+        <div class="mb-3">
+          <label class="form-label d-flex justify-content-start">Vehicle type</label>
+          <input  type="text" id="form1Example13" class="form-control" formControlName="vehiclename"
+          name="vehiclename" >
+
+        </div>
+        <div *ngIf="vehicleform.get('vehiclename')?.invalid && (vehicleform.get('vehiclename')?.dirty || vehicleform.get('vehiclename')?.touched)">
+          <div [hidden]="!vehicleform.get('vehiclename')?.errors?.['required']" class="text-danger"
+          >Vehicle Name is required </div>
+        </div>
+        <div class="mb-3">
+          <input type="file" (change)="getimage($event)" formControlName="image" accept="image/png, image/jpg, image/gif, image/jpeg"/>
+        </div>
+        <div>
+          <button type="submit" class="btn btn-primary w-40" id="submitBtn" *ngIf="addbuttonshow">
+            Add-Vehicle
+          </button>
+          <button type="submit" class="btn btn-primary w-40" id="submitBtn" *ngIf="updatebuttonshow">
+            Update-Vehicle
+          </button>
+          <button class="btn btn-primary w-40" style="margin-left: 20px" (click)="cancel()">
+            cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <!-- <div class="parentFormContainer">
+      <div id="formContainer" *ngIf="isupdateshow">
+        <h2 class="mb-3">Vehicle type</h2>
+        <form class="container" [formGroup]="vehicleform"
+          (ngSubmit)="OnSubmit()">
+          <div class="mb-3">
+            <label class="form-label d-flex justify-content-start">Vehicle type</label>
+            <input type="vehiclename" id="form1Example13" class="form-control"
+              formControlName="vehiclename"
+              [ngClass]="{'is-invalid': submitted && vehicleform.controls['vehiclename'].errors}" />
+            <div
+              *ngIf=" submitted && vehicleform.controls['vehiclename'].errors"
+              class="text-danger">
+              <div
+                *ngIf=" submitted && vehicleform.controls['vehiclename'].errors['required']">Vehicle
+                Name is required</div>
+            </div>
+          </div>
+          <div class="mb-3">
+            <input type="file" (change)="getimage($event)"
+              formControlName="image">
+          </div>
+          <div>
+            <button type="submit" class="btn btn-primary w-100" id="submitBtn">
+              Update-Vehicle
+            </button>
+          </div>
+        </form>
+      </div>
+    </div> -->
+  <div class="card-container container">
+    <div class="container d-flex flex-wrap align-items-center">
+      <div class="m-4 card" *ngFor="let vehicle of vehicledatadfghjk">
+        <img class="card-img-top" src="http://localhost:8080/vehicleupload/{{ vehicle.image }}"  alt="Card image cap" />
+        <div class="card-body">
+          <h5 class="card-title">{{ vehicle.vehiclename }}</h5>
+          <button mat-button mat-stroked-button color="primary" (click)="updatevehicle(vehicle._id, vehicle)">
+            <mat-icon>edit</mat-icon>Edit
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

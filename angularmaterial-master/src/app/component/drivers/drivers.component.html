@@ -1,0 +1,225 @@
+
+<!-- <div class="mb-3">
+  <label class="form-label d-flex justify-content-start" for="drivercity">City
+    :</label>
+  <div class="dropdown">
+    <select class="form-select" id="city" formControlName="drivercity" #city
+      (change)="onSelectedcity(city.value)">
+      <option value>select city </option>
+      <option *ngFor="let city of citynamedata" [value]="city">{{city}}</option>
+    </select>
+  </div>
+</div> -->
+<div class="flex-container">
+  <div class="button">
+    <button mat-button mat-stroked-button color="primary" (click)="OnAddbuttonclick()">
+      <mat-icon>add_circle</mat-icon>Add Driver
+    </button>
+  </div>
+  <div>
+    <input class="form-control rounded" [(ngModel)]="search" placeholder="Search" (input)="Driverdata()"  />
+    <!-- <button (click)="searchPricing()">Search</button> -->
+  </div>
+  <div>
+    <select class="form-control rounded" [(ngModel)]="sortOrder" #sortOrderSelect
+      (change)="onSortOrderChange(sortOrderSelect.value)">
+      <option value="asc">Ascending</option>
+      <option value="desc">Descending</option>
+    </select>
+  </div>
+  <div>
+    <select id="rowsPerPage" [(ngModel)]="limit" (ngModelChange)="onChangeLimit()" class="form-control rounded">
+      <option disabled selected value="5" >Data Per Page : </option>
+      <option value="5">5</option>
+      <option value="1">1</option>
+      <option value="10">10</option>
+      <option value="15">15</option>
+      <option value="20">20</option>
+    </select>
+  </div>
+</div>
+
+
+
+
+
+<div class="parentFormContainer">
+  <div id="formContainer" *ngIf="isshow">
+    <h2 class="mb-3">Driver</h2>
+    <form class="container" [formGroup]="driverForm" (ngSubmit)="OnSubmit()">
+      <div class="mb-3">
+        <label class="form-label d-flex justify-content-start">Name :</label>
+        <input type="text" class="form-control" formControlName="drivername" />
+      </div>
+      <div *ngIf="driverForm.get('drivername')?.invalid && (driverForm.get('usernadrivernameme')?.dirty || driverForm.get('drivername')?.touched)">
+        <div [hidden]="!driverForm.get('drivername')?.errors?.['required']" class="text-danger">
+          Name is Required
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label d-flex justify-content-start">Email :</label>
+        <input type="text" class="form-control" formControlName="driveremail" />
+      </div>
+      <div *ngIf="driverForm.get('driveremail')?.invalid && (driverForm.get('driveremail')?.dirty || driverForm.get('driveremail')?.touched)">
+        <div [hidden]="!driverForm.get('driveremail')?.errors?.['email']" class="text-danger"
+         >Please Enter Valid Email Id </div>
+        <div [hidden]="!driverForm.get('driveremail')?.errors?.['required']" class="text-danger"
+         >Email is Required </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label d-flex justify-content-start">Phone Number :</label>
+        <input type="text" class="form-control" formControlName="driverphonenumber"
+        oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);" />
+
+      </div>
+      <div *ngIf="driverForm.get('driverphonenumber')?.invalid && (driverForm.get('driverphonenumber')?.dirty || driverForm.get('driverphonenumber')?.touched)">
+        <div [hidden]="!driverForm.get('driverphonenumber')?.errors?.['required']" class="text-danger"
+         >Phone Number is Required</div>
+        <div [hidden]="!driverForm.get('driverphonenumber')?.errors?.['minlength']" class="text-danger"
+         >Please Enter Valid Phonenumber </div>
+        <div [hidden]="!driverForm.get('driverphonenumber')?.errors?.['maxlength']" class="text-danger"
+         >Please Enter Valid Phonenumber</div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label d-flex justify-content-start">Country Code :</label>
+        <input type="text" class="form-control" formControlName="drivercountrycode"  [value]="'drivercountrycode'" />
+      </div>
+      <div *ngIf="driverForm.get('drivercountrycode')?.invalid && (driverForm.get('drivercountrycode')?.dirty || driverForm.get('drivercountrycode')?.touched)">
+        <div [hidden]="!driverForm.get('drivercountrycode')?.errors?.['required']" class="text-danger"
+       >Country Code is Required</div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label d-flex justify-content-start" for="country">Country
+          :</label>
+        <div class="dropdown">
+          <select class="form-select" id="country" #country (change)="onSelected(country.value)"
+            formControlName="country_id">
+            <option value>Select country </option>
+            <option *ngFor="let country of countrydata" [value]="country._id">{{
+              country.countryname
+              }}</option>
+          </select>
+        </div>
+      </div>
+      <div *ngIf="driverForm.get('country_id')?.invalid && (driverForm.get('country_id')?.dirty || driverForm.get('country_id')?.touched)">
+        <div [hidden]="!driverForm.get('country_id')?.errors?.['required']" class="text-danger"
+         >Country is Required</div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label d-flex justify-content-start" for="drivercity">City
+          :</label>
+        <div class="dropdown">
+          <select class="form-select" id="city" formControlName="city_id" #city (change)="onSelectedcity(city.value)">
+            <option value>select city </option>
+            <option *ngFor="let city of citynamedata" [value]="city._id">{{city.city}}</option>
+          </select>
+        </div>
+        <div *ngIf="driverForm.get('city_id')?.invalid && (driverForm.get('city_id')?.dirty || driverForm.get('city_id')?.touched)">
+          <div [hidden]="!driverForm.get('city_id')?.errors?.['required']" class="text-danger"
+           >City is Required</div>
+        </div>
+      </div>
+
+
+      <div class="mb-3">
+        <label class="form-label d-flex justify-content-start">User Profile :</label>
+        <input type="file" (change)="getimage($event)" formControlName="image"
+          accept="image/png, image/jpg, image/gif, image/jpeg" />
+      </div>
+      <button type="submit" class="btn btn-primary w-40" id="submitBtn" *ngIf="addbuttonshow">
+        Add-driver
+      </button>
+      <button type="submit" class="btn btn-primary w-40" id="submitBtn" *ngIf="updatebuttonshow">
+        Update-driver
+      </button>
+      <button class="btn btn-primary w-40" style="margin-left: 20px" (click)="cancel()">
+        cancel
+      </button>
+    </form>
+  </div>
+</div>
+<br>
+
+
+
+<div class="mx-auto" style="width: 1200px; background-color: rgb(255, 255, 255); ">
+  <br>
+  <table class="table table-hover">
+
+    <thead class="bg-dark text-white">
+      <tr>
+        <th>Id</th>
+        <th>NAME</th>
+        <th>EMAIL</th>
+        <th>PHONENUMBER</th>
+        <th>COUNTRY</th>
+        <th>CITY</th>
+        <th>PROFILE</th>
+        <th>APPROVAL</th>
+        <th>assignService</th>
+        <th>ACTION</th>
+      </tr>
+    </thead>
+    <tbody *ngIf="driver">
+
+      <tr *ngFor="
+let driver of driver
+let i = index
+">
+        <td>{{i+1}}</td>
+        <td class="font-weight-bold">{{driver.drivername}}</td>
+        <td class="font-weight-bold"> {{ driver.driveremail }}</td>
+        <td class="font-weight-bold"> {{driver.drivercountrycode}}{{
+          driver.driverphonenumber }}</td>
+        <td class="font-weight-bold"> {{ driver.countrydata.countryname }}</td>
+        <td class="font-weight-bold"> {{ driver.citydata.city }}</td>
+
+        <td class="font-weight-bold"> <img class="card-img-top"
+            src="http://localhost:8080/driverprofile/{{ driver.image }}" alt="Card image cap" style="width:25px" /></td>
+        <td>
+          <div class="form-check form-switch">
+            <input class="form-check-input" name="driver._id" type="checkbox" [checked]="driver.status"
+              (click)="onchangeevent($event); onCheckboxChange(driver._id)" />
+              {{ driver.status }}
+          </div>
+        </td>
+        <td class="font-weight-bold"> {{ driver.vehicledata?.vehiclename ? driver.vehicledata.vehiclename : driver.type }}</td>
+
+        <td> <button mat-raised-button (click)="Onupdatebuttonclick(driver._id, driver)">
+            <mat-icon>edit</mat-icon></button>
+          <button mat-raised-button (click)="Ondelete(driver._id)">
+            <mat-icon>delete</mat-icon></button>
+            <button mat-raised-button (click)="openDialog(driver)">
+              <mat-icon>local_taxi</mat-icon></button>
+
+
+            <!-- <button mat-raised-button >
+              <div class="dropdown">
+                <select class="form-select" id="vehicle" #vehicle (change)="onSelectedvehicle(vehicle.value)"
+                  formControlName="vehicle_id">
+                  <option *ngFor="let vehicle of vehicledata" [value]="vehicle._id">{{
+                    vehicle.vehiclename
+                    }}</option>
+                </select>
+              </div>
+            </button> -->
+          </td>
+        </tr>
+    </tbody>
+  </table>
+</div>
+
+
+<div>
+  <button mat-raised-button (click)="onPageChange(page - 1)" [disabled]="page === 1">
+    Previous
+  </button>
+  <span> {{ page }} </span>
+  <button mat-raised-button (click)="onPageChange(page + 1)" [disabled]="page === totalPage">
+    Next
+  </button>
+</div>
+<div>
+
+
+

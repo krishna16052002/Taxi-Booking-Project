@@ -1,0 +1,46 @@
+<div class="m-5">
+  <table mat-table [dataSource]="runningrequestdata" class="mat-elevation-z8 demo-table  " >
+    <ng-container matColumnDef="requestId">
+      <th mat-header-cell *matHeaderCellDef>REQUEST ID</th>
+      <td mat-cell *matCellDef="let ride">{{ ride._id }}</td>
+    </ng-container>
+    <ng-container matColumnDef="userId">
+      <th mat-header-cell *matHeaderCellDef>USER ID</th>
+      <td mat-cell *matCellDef="let ride">{{ ride.user_id }}</td>
+    </ng-container>
+    <ng-container matColumnDef="userName">
+      <th mat-header-cell *matHeaderCellDef>USER NAME</th>
+      <td mat-cell *matCellDef="let ride">{{ ride.userdata.username }}</td>
+    </ng-container>
+    <ng-container matColumnDef="pickupTime">
+      <th mat-header-cell *matHeaderCellDef>PICKUP TIME</th>
+      <td mat-cell *matCellDef="let ride">{{ ride.date }} {{ ride.time }}</td>
+    </ng-container>
+    <ng-container matColumnDef="pickupLocation">
+      <th mat-header-cell *matHeaderCellDef>PICKUP LOCATION</th>
+      <td mat-cell *matCellDef="let ride">{{ ride.startlocation }}</td>
+    </ng-container>
+    <ng-container matColumnDef="destinationLocation">
+      <th mat-header-cell *matHeaderCellDef>DESTINATION LOCATION</th>
+      <td mat-cell *matCellDef="let ride">{{ ride.destinationlocation }}</td>
+    </ng-container>
+    <ng-container matColumnDef="service">
+      <th mat-header-cell *matHeaderCellDef>SERVICE</th>
+      <td mat-cell *matCellDef="let ride">{{ ride.vehicledata.vehiclename }}</td>
+    </ng-container>
+    <ng-container matColumnDef="action">
+      <th mat-header-cell *matHeaderCellDef>Action</th>
+      <td mat-cell *matCellDef="let ride">
+        <button mat-raised-button color="primary" style="margin-bottom: 10px;">
+       Accept
+        </button>
+
+        <button mat-raised-button color="warn" (click)="rejectride(ride)">
+          Reject
+        </button>
+        </td>
+    </ng-container>
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+</div>

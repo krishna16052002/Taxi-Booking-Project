@@ -1,0 +1,49 @@
+
+
+<h2 mat-dialog-title>RIDE INFORMATION</h2>
+<mat-dialog-content>
+
+  <div class="card text-center" *ngIf = "ridedata">
+    <div class="card-header" > Request Id : {{ridedata._id}}</div>
+    <div class="card-header" > Payment Option : {{ridedata.paymentoption}}</div>
+    <div class="card-header" > Pickup Time : {{ridedata.date}}{{ridedata.time}}</div>
+    <div class="card-header" > Pickup Location : {{ridedata.startlocation}}</div>
+    <div class="card-header" > Destination Location : {{ridedata.destinationlocation}}</div>
+    <div class="card-header" > Total Distance : {{ridedata.totaldistance}}</div>
+    <div class="card-header" > Estimatetime : {{ridedata.estimatetime}}</div>
+    <div class="card-header" > Fare : {{ridedata.estimatefare}}</div>
+    </div>
+    <div class="card text-center"*ngIf = "usersdata" >
+      <div class="card-header" >User Name : {{usersdata.username}}</div>
+      <div class="card-header">User Phonenumber :{{usersdata.userphonenumber}}</div>
+      <div class="card-header">User Email : {{usersdata.useremail}}</div>
+    </div>
+    <div class="card text-center" *ngIf="vehicledata">
+      <div class="card-header">Service : {{vehicledata.vehiclename}}</div>
+    </div>
+
+
+
+    <!-- <div *ngIf="ridedata" >
+      <p>ride id :{{ridedata._id}}</p>
+      <p></p>
+      <p>{{ ride[0] }}: {{ ride[1] }}</p>
+
+    </div>
+
+    <div *ngIf="cityData"  >
+      <p>City ID: {{ cityData?._id }}</p>
+      <p>Country ID: {{ cityData.country_id }}</p>
+      <p>City: {{ cityData.city }}</p>
+    </div> -->
+
+
+
+
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-raised-button (click)="closeDialog()">Cancel</button>
+</mat-dialog-actions>
+
+
+

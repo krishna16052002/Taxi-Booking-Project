@@ -1,0 +1,241 @@
+<div class="button">
+  <button mat-button mat-stroked-button color="primary" (click)="OnAddbuttonclick()">
+    <mat-icon>add_circle</mat-icon>Add Vehicle Pricing
+  </button>
+</div>
+<div class="parentFormContainer">
+  <div id="formContainer" *ngIf="isshow">
+    <h2 class="mb-3">vehicle pricing</h2>
+    <form class="container" [formGroup]="vehiclepricingform" (ngSubmit)="OnSubmit()">
+      <!-- <div class="dropdown">
+        <select name="country" #country (change)="onSelected(country.value)">
+        <select name="country">
+          <option [value]="" *ngFor="let country of countrydata ">{{country.name.common}}</option>
+          <option [value]=""></option>
+        </select>
+      </div> -->
+      <div class="mb-3">
+        <label class="form-label d-flex justify-content-start" for="country">Country:</label>
+        <div class="dropdown">
+          <select class="form-select" id="country" #country (change)="onSelected(country.value)"
+            formControlName="country_id">
+            <option value>Select country </option>
+            <option *ngFor="let country of countrydata" [value]="country._id">{{country.countryname}}</option>
+          </select>
+        </div>
+      </div>
+      <div
+        *ngIf="vehiclepricingform.get('country_id')?.invalid && (vehiclepricingform.get('country_id')?.dirty || vehiclepricingform.get('country_id')?.touched)">
+        <div [hidden]="!vehiclepricingform.get('country_id')?.errors?.['required']" class="text-danger">
+          Country is Required
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label d-flex justify-content-start" for="drivercity">City
+          :</label>
+        <div class="dropdown">
+          <select class="form-select" id="city" formControlName="city_id" #city (change)="onSelectedcity(city.value)">
+            <option value>select city </option>
+            <option *ngFor="let city of citynamedata" [value]="city._id">{{city.city}}</option>
+          </select>
+        </div>
+      </div>
+      <div
+        *ngIf="vehiclepricingform.get('city_id')?.invalid && (vehiclepricingform.get('city_id')?.dirty || vehiclepricingform.get('city_id')?.touched)">
+        <div [hidden]="!vehiclepricingform.get('city_id')?.errors?.['required']" class="text-danger">
+          City is Required
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label d-flex justify-content-start" for="vehicle">Vehicle
+          Type :</label>
+        <div class="dropdown">
+          <select class="form-select" id="vehicle" #vehicle (change)="onSelectedvehicle(vehicle.value)"
+            formControlName="vehicle_id">
+            <option value>Select vehicle </option>
+            <option [value]="vehicle._id" *ngFor="let vehicle of vehicledata">{{vehicle.vehiclename}}</option>
+
+
+          </select>
+        </div>
+      </div>
+      <div
+        *ngIf="vehiclepricingform.get('vehicle_id')?.invalid && (vehiclepricingform.get('vehicle_id')?.dirty || vehiclepricingform.get('vehicle_id')?.touched)">
+        <div [hidden]="!vehiclepricingform.get('vehicle_id')?.errors?.['required']" class="text-danger">
+          Vehicle is Required
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label d-flex justify-content-start"> Driver Profit :</label>
+        <input class="form-control" formControlName="driverprofit"
+        type="text"oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/(\..*)\./g, '$1');"/>
+      </div>
+      <div
+        *ngIf="vehiclepricingform.get('driverprofit')?.invalid && (vehiclepricingform.get('driverprofit')?.dirty || vehiclepricingform.get('driverprofit')?.touched)">
+        <div [hidden]="!vehiclepricingform.get('driverprofit')?.errors?.['required']" class="text-danger">
+          Driver Profit is Required
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label d-flex justify-content-start"> Min Fare :</label>
+        <input class="form-control" formControlName="minfare"
+        type="text"oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/(\..*)\./g, '$1');" />
+      </div>
+      <div
+        *ngIf="vehiclepricingform.get('minfare')?.invalid && (vehiclepricingform.get('minfare')?.dirty || vehiclepricingform.get('minfare')?.touched)">
+        <div [hidden]="!vehiclepricingform.get('minfare')?.errors?.['required']" class="text-danger">
+          Min Fare is Required
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label d-flex justify-content-start">Distance for Base
+          price :</label>
+          <input type="text"oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/(\..*)\./g, '$1');"
+          class="form-control" formControlName="distanceforbaseprice" />
+      </div>
+      <div
+        *ngIf="vehiclepricingform.get('distanceforbaseprice')?.invalid && (vehiclepricingform.get('distanceforbaseprice')?.dirty || vehiclepricingform.get('distanceforbaseprice')?.touched)">
+        <div [hidden]="!vehiclepricingform.get('distanceforbaseprice')?.errors?.['required']" class="text-danger">
+          Distance for Base is Required
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label d-flex justify-content-start">Base price :</label>
+        <input type="text"oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/(\..*)\./g, '$1');"
+          class="form-control" formControlName="baseprice" />
+      </div>
+      <div
+        *ngIf="vehiclepricingform.get('baseprice')?.invalid && (vehiclepricingform.get('baseprice')?.dirty || vehiclepricingform.get('baseprice')?.touched)">
+        <div [hidden]="!vehiclepricingform.get('baseprice')?.errors?.['required']" class="text-danger">
+          Base price is Required
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label d-flex justify-content-start">price per unit
+          distance :</label>
+        <input type="text"oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/(\..*)\./g, '$1');"
+          class="form-control" formControlName="priceperunitdistance" />
+      </div>
+      <div
+        *ngIf="vehiclepricingform.get('priceperunitdistance')?.invalid && (vehiclepricingform.get('priceperunitdistance')?.dirty || vehiclepricingform.get('priceperunitdistance')?.touched)">
+        <div [hidden]="!vehiclepricingform.get('priceperunitdistance')?.errors?.['required']" class="text-danger">
+          Price Per Unit Distance is Required
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label d-flex justify-content-start">price per unit
+          Time :</label>
+          <input type="text" class="form-control" formControlName="priceperunittime" oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/(\..*)\./g, '$1');" />
+        <!-- <input type="text" oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/(\..*)\./g, '$1');"
+          class="form-control" formControlName="priceperunittime" /> -->
+      </div>
+      <div
+        *ngIf="vehiclepricingform.get('priceperunittime')?.invalid && (vehiclepricingform.get('priceperunittime')?.dirty || vehiclepricingform.get('priceperunittime')?.touched)">
+        <div [hidden]="!vehiclepricingform.get('priceperunittime')?.errors?.['required']" class="text-danger">
+          Price Per Unit Time is Required
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label d-flex justify-content-start">Max space :</label>
+        <input type="text" class="form-control" formControlName="maxspace" oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/(\..*)\./g, '$1');" />
+        <!-- <input type="text" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" class="form-control" formControlName="maxspace" /> -->
+      </div>
+      <div
+        *ngIf="vehiclepricingform.get('maxspace')?.invalid && (vehiclepricingform.get('maxspace')?.dirty || vehiclepricingform.get('maxspace')?.touched)">
+        <div [hidden]="!vehiclepricingform.get('maxspace')?.errors?.['required']" class="text-danger">
+          Max Space is Required
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary w-40" id="submitBtn" *ngIf="addbuttonshow">
+        Add-vehicle-pricing
+      </button>
+      <button type="submit" class="btn btn-primary w-40" id="submitBtn" *ngIf="updatebuttonshow">
+        Update-vehicle-pricing
+      </button>
+      <button class="btn btn-primary w-40" style="margin-left: 20px" (click)="cancel()">
+        cancel
+      </button>
+    </form>
+  </div>
+</div>
+<br>
+<!-- table  -->
+
+<div class="d-flex justify-content-center">
+  <label for="rowsPerPage">Data per page : </label>
+  <select id="rowsPerPage" [(ngModel)]="limit" (ngModelChange)="onChangeLimit()">
+    <option value="5">5</option>
+    <option value="10">10</option>
+    <option value="15">15</option>
+    <option value="20">20</option>
+  </select>
+</div>
+
+<div class="mx-auto" style="background-color: rgb(255, 255, 255); width: 1500px;">
+  <br>
+  <table class="table table-hover">
+    <thead class="bg-dark text-white">
+      <tr>
+        <th>Id</th>
+        <th>Country</th>
+        <th>City</th>
+        <th>Vehicle</th>
+        <th>driverprofit</th>
+        <th>minfare</th>
+        <th>distanceforbaseprice</th>
+        <th>baseprice</th>
+        <th>priceperunitdistance</th>
+        <th>priceperunittime</th>
+        <th>maxspace</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let pricing of vehiclepricingdata let i = index ">
+        <td>{{i+1}}</td>
+        <td class="font-weight-bold">{{ pricing.countrydata.countryname }}</td>
+        <td class="font-weight-bold">{{ pricing.citydata.city }}</td>
+        <td class="font-weight-bold">{{ pricing.vehicledata.vehiclename }}</td>
+        <td class="font-weight-bold">{{ pricing.driverprofit }}</td>
+        <td class="font-weight-bold">{{ pricing.minfare }}</td>
+        <td class="font-weight-bold">{{ pricing.distanceforbaseprice }}</td>
+        <td class="font-weight-bold">{{ pricing.baseprice }}</td>
+        <td class="font-weight-bold">{{ pricing.priceperunitdistance }}</td>
+        <td class="font-weight-bold">{{ pricing.priceperunittime }}</td>
+        <td class="font-weight-bold">{{ pricing.maxspace }}</td>
+        <td>
+          <button mat-raised-button (click)="Onupdatebuttonclick(pricing._id, pricing)">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-raised-button (click)="Ondelete(pricing._id)">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="d-flex justify-content-center">
+  <div *ngIf="totalPages > 0">
+    <button mat-raised-button [disabled]="currentPage === 1" (click)="previousPage()">Previous</button>
+    <span> {{ currentPage }} </span>
+    <button mat-raised-button [disabled]="currentPage === totalPages" (click)="nextPage()">Next</button>
+  </div>
+</div>
+
+
+
+
+<!--
+<tr *ngFor="
+let user of userdatabasedata
+  | paginate
+    : {
+        itemsPerPage: tableSize,
+        currentPage: page,
+        totalItems: count
+      };
+let i = index
+"> -->

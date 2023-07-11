@@ -1,0 +1,70 @@
+
+
+
+
+
+
+
+<h2 mat-dialog-title>RIDE INFORMATION</h2>
+<mat-dialog-content>
+  <div class="m-5">
+    <table mat-table [dataSource]="drivers" class="mat-elevation-z8 demo-table  " >
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef>NAME</th>
+        <td mat-cell *matCellDef="let driver">{{ driver.drivername }}</td>
+      </ng-container>
+      <ng-container matColumnDef="email">
+        <th mat-header-cell *matHeaderCellDef>EMAIL</th>
+        <td mat-cell *matCellDef="let driver">{{ driver.driveremail }}</td>
+      </ng-container>
+      <ng-container matColumnDef="phonenumber">
+        <th mat-header-cell *matHeaderCellDef>PHONENUMBER</th>
+        <td mat-cell *matCellDef="let driver">{{ driver.driverphonenumber }}</td>
+      </ng-container>
+      <ng-container matColumnDef="service">
+        <th mat-header-cell *matHeaderCellDef>SERVICE</th>
+        <td mat-cell *matCellDef="let driver">{{ driver.vehicledata.vehiclename }}</td>
+      </ng-container>
+      <ng-container matColumnDef="city">
+        <th mat-header-cell *matHeaderCellDef>CITY</th>
+        <td mat-cell *matCellDef="let driver">{{ driver.citydata.city }}</td>
+      </ng-container>
+      <ng-container matColumnDef="action">
+        <th mat-header-cell *matHeaderCellDef>Action</th>
+        <td mat-cell *matCellDef="let ride">
+          <button mat-raised-button class="bg-dark text-white" (click)="assigndriver(ride)" >
+           Assign Driver
+          </button>
+        </td>
+      </ng-container>
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+  </div>
+
+<!--
+
+  <div class="card text-center" *ngIf = "ridedata">
+    <div class="card-header" > Request Id : {{ridedata._id}}</div>
+    <div class="card-header" > Payment Option : {{ridedata.paymentoption}}</div>
+    <div class="card-header" > Pickup Time : {{ridedata.date}}{{ridedata.time}}</div>
+    <div class="card-header" > Pickup Location : {{ridedata.startlocation}}</div>
+    <div class="card-header" > Destination Location : {{ridedata.destinationlocation}}</div>
+    <div class="card-header" > Total Distance : {{ridedata.totaldistance}}</div>
+    <div class="card-header" > Estimatetime : {{ridedata.estimatetime}}</div>
+    <div class="card-header" > Fare : {{ridedata.estimatefare}}</div>
+    </div>
+    <div class="card text-center"*ngIf = "usersdata" >
+      <div class="card-header" >User Name : {{usersdata.username}}</div>
+      <div class="card-header">User Phonenumber :{{usersdata.userphonenumber}}</div>
+      <div class="card-header">User Email : {{usersdata.useremail}}</div>
+    </div>
+    <div class="card text-center" *ngIf="vehicledata">
+      <div class="card-header">Service : {{vehicledata.vehiclename}}</div>
+    </div>
+
+  -->
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-raised-button (click)="closeDialog()">Cancel</button>
+  </mat-dialog-actions>

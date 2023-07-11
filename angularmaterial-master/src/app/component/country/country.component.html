@@ -1,0 +1,110 @@
+<div class="flex-container">
+  <div class="button">
+    <button mat-button mat-stroked-button color="primary" (click)="OnAddbuttonclick()">
+      <mat-icon>add_circle</mat-icon>Add Country
+    </button>
+  </div>
+  <div>
+ <input  class="form-control rounded" type="text" [(ngModel)]="query" placeholder="Search country" (input)="search(query)">
+  </div>
+</div>
+
+
+
+
+
+    <div class="parentFormContainer">
+      <div id="formContainer" *ngIf="isshow">
+        <h2 class="mb-3">COUNTRY</h2>
+        <form class="container" [formGroup]="countryForm" (ngSubmit)="OnSubmit()">
+          <div class="dropdown">
+            <select name="country" #country (change)="onSelected(country.value)">
+              <option [value]="" *ngFor="let country of countrydata ">{{country.name.common}}</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label d-flex justify-content-start">Country</label>
+            <input type="text" class="form-control" [value]="'countryname'" formControlName="countryname"
+              name="countryname"  id="countryname"/>
+          </div>
+          <div *ngIf="countryForm.get('countryname')?.invalid && (countryForm.get('countryname')?.dirty || countryForm.get('countryname')?.touched)">
+            <div [hidden]="!countryForm.get('countryname')?.errors?.['required']" class="text-danger"
+             >Country Name is required </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label d-flex justify-content-start">TimeZone</label>
+            <input type="text" class="form-control" [value]="'countrytimezone'" formControlName="countrytimezone" />
+          </div>
+          <div *ngIf="countryForm.get('countrytimezone')?.invalid && (countryForm.get('countrytimezone')?.dirty || countryForm.get('countrytimezone')?.touched)">
+            <div [hidden]="!countryForm.get('countrytimezone')?.errors?.['required']" class="text-danger"
+             > TImeZone is required </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label d-flex justify-content-start">Code</label>
+            <input type="text" class="form-control" formControlName="countrycode" [value]="'countrycode'" />
+          </div>
+          <div *ngIf="countryForm.get('countrycode')?.invalid && (countryForm.get('countrycode')?.dirty || countryForm.get('countrycode')?.touched)">
+            <div [hidden]="!countryForm.get('countrycode')?.errors?.['required']" class="text-danger"
+             >Country Code is required </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label d-flex justify-content-start">Currency</label>
+            <input type="text" class="form-control" formControlName="countrycurrency" [value]="'countrycurrency'" />
+          </div>
+          <div *ngIf="countryForm.get('countrycurrency')?.invalid && (countryForm.get('countrycurrency')?.dirty || countryForm.get('countrycurrency')?.touched)">
+            <div [hidden]="!countryForm.get('countrycurrency')?.errors?.['required']" class="text-danger"
+             >Currency is required </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label d-flex justify-content-start">Flag</label>
+            <img src="{{flag}}" style="width: 100px;">
+          </div>
+          <div>
+            <button type="submit" class="btn btn-primary w-40" id="submitBtn">
+              Add-country
+            </button>
+            <button class="btn btn-primary w-40" style="margin-left: 20px" (click)="cancel()">
+              cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div class="card-container container">
+      <div class="container d-flex flex-wrap align-items-center">
+        <div class="m-4 card" *ngFor="let country of countrydatabasedata">
+          <img class="card-img-top" src="{{country.flag}}" alt="Card image cap" style="width:200px; height: 300px;" />
+          <div class="card-body">
+            <h5 class="card-title">Country Name : {{ country.countryname }}</h5>
+            <h5 class="card-title">Country Currency : {{country.countrycurrency}}</h5>
+            <h5 class="card-title">Timezone : {{country.countrytimezone}}</h5>
+            <h5 class="card-title">Country Code : {{country.countrycode}}</h5>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+
+
+
+    <!--
+<select name="country" #country (change)="onSelected(country.value)">
+  <option [value]="" *ngFor="let country of countrydata ">{{country.name.common}}</option>
+</select> -->
+
+
+    <!-- <p>
+ COUNTRYNAME :  {{countryname}}
+</p>
+<p>Flag : <img src="{{flag}}"></p>
+
+<p>
+   COUNTRYCODE :{{countrycode}}
+</p>
+<p>
+   COUNTRYTIMEZONE : {{countrytimezone}}
+</p>
+<p>
+   COUNTRY CURRENCY : {{countrycurrency}}
+</p> -->

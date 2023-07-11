@@ -1,0 +1,165 @@
+<div class="flex-container">
+  <div class="button">
+    <button mat-button mat-stroked-button color="primary" (click)="OnAddbuttonclick()">
+      <mat-icon>add_circle</mat-icon>Add User
+    </button>
+  </div>
+  <div>
+    <input class="form-control rounded" [(ngModel)]="search" placeholder="Search" (input)="searchPricing()"  />
+    <!-- <button (click)="searchPricing()">Search</button> -->
+  </div>
+  <div>
+    <select class="form-control rounded" [(ngModel)]="sortOrder" #sortOrderSelect
+      (change)="onSortOrderChange(sortOrderSelect.value)">
+      <option value="asc">Ascending</option>
+      <option value="desc">Descending</option>
+    </select>
+  </div>
+  <div>
+    <select id="rowsPerPage" [(ngModel)]="limit" (ngModelChange)="onChangeLimit()" class="form-control rounded">
+      <option disabled selected value="5" >Data Per Page : </option>
+      <option value="5">5</option>
+      <option value="10">10</option>
+      <option value="15">15</option>
+      <option value="20">20</option>
+    </select>
+  </div>
+</div>
+
+
+
+<!-- <div>
+  <input type="text" [(ngModel)]="query" placeholder="Search Term" (input)="search(query)" >
+  <button (click)="search(query)">Search</button>
+</div> -->
+<div class="parentFormContainer">
+  <div id="formContainer" *ngIf="isshow">
+    <h2 class="mb-3">USER</h2>
+    <form class="container" [formGroup]="userForm" (ngSubmit)="OnSubmit()">
+      <div class="mb-3">
+        <label class="form-label d-flex justify-content-start" >Name :</label>
+        <input type="text" class="form-control" formControlName="username" />
+      </div>
+
+        <div *ngIf="userForm.get('username')?.invalid && (userForm.get('username')?.dirty || userForm.get('username')?.touched)">
+          <div [hidden]="!userForm.get('username')?.errors?.['required']" class="text-danger" [ngStyle]="{'margin-left': '10px'}">
+            Name is required
+          </div>
+        </div>
+
+      <div class="mb-3">
+        <label class="form-label d-flex justify-content-start">Email :</label>
+        <input type="text" class="form-control" formControlName="useremail" />
+      </div>
+      <div *ngIf="userForm.get('useremail')?.invalid && (userForm.get('useremail')?.dirty || userForm.get('useremail')?.touched)">
+        <div [hidden]="!userForm.get('useremail')?.errors?.['email']" class="text-danger"
+          [ngStyle]="{'margin-left': '10px'}">Please Enter Valid Email Id </div>
+        <div [hidden]="!userForm.get('useremail')?.errors?.['required']" class="text-danger"
+          [ngStyle]="{'margin-left': '10px'}">Email is required </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label d-flex justify-content-start">Phone Number :</label>
+        <input type="text" class="form-control" formControlName="userphonenumber"
+        oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);" />
+      </div>
+
+        <div *ngIf="userForm.get('userphonenumber')?.invalid && (userForm.get('userphonenumber')?.dirty || userForm.get('userphonenumber')?.touched)">
+          <div [hidden]="!userForm.get('userphonenumber')?.errors?.['required']" class="text-danger"
+            [ngStyle]="{'margin-left': '10px'}">Phone Number is required</div>
+          <div [hidden]="!userForm.get('userphonenumber')?.errors?.['minlength']" class="text-danger"
+            [ngStyle]="{'margin-left': '10px'}">Please Enter Valid Phonenumber </div>
+          <div [hidden]="!userForm.get('userphonenumber')?.errors?.['maxlength']" class="text-danger"
+            [ngStyle]="{'margin-left': '10px'}">Please Enter Valid Phonenumber</div>
+        </div>
+      <div class="mb-3">
+        <label class="form-label d-flex justify-content-start" for="usercountrycode">Country Code :</label>
+        <div class="dropdown">
+          <select class="form-select" id="country" formControlName="usercountrycode">
+            <option value="">Select country code</option>
+            <option value="{{ code }}" *ngFor="let code of usercountrycodedata">
+              {{ code }}
+            </option>
+          </select>
+        </div>
+      </div>
+      <div *ngIf="userForm.get('usercountrycode')?.invalid && (userForm.get('usercountrycode')?.dirty || userForm.get('usercountrycode')?.touched)">
+        <div [hidden]="!userForm.get('usercountrycode')?.errors?.['required']" class="text-danger"
+          [ngStyle]="{'margin-left': '10px'}">Countrycode is Required</div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label d-flex justify-content-start">User Profile :</label>
+        <input type="file" (change)="getimage($event)" formControlName="image"
+          accept="image/png, image/jpg, image/gif, image/jpeg" />
+      </div>
+      <button type="submit" class="btn btn-primary w-40" id="submitBtn" *ngIf="addbuttonshow">
+        Add-User
+      </button>
+      <button type="submit" class="btn btn-primary w-40" id="submitBtn" *ngIf="updatebuttonshow">
+        Update-User
+      </button>
+      <button class="btn btn-primary w-40" style="margin-left: 20px" (click)="cancel()">
+        cancel
+      </button>
+    </form>
+  </div>
+</div>
+<br />
+<!-- table  -->
+
+<div class="mx-auto" style="width: 1000px; background-color: rgb(255, 255, 255)">
+  <br />
+  <table class="table table-hover">
+    <thead class="bg-dark text-white">
+      <tr>
+        <th>Id</th>
+        <th>NAME</th>
+        <th>EMAIL</th>
+        <th>PHONENUMBER</th>
+        <!-- <th>COUNTRYCODE</th> -->
+        <th>PROFILE</th>
+        <th>ACTION</th>
+      </tr>
+    </thead>
+    <tbody *ngIf="pricing">
+      <tr *ngFor="let user of pricing; let i = index">
+        <td>{{ i + 1 }}</td>
+        <td class="font-weight-bold">{{ user.username }}</td>
+        <td class="font-weight-bold">{{ user.useremail }}</td>
+        <td class="font-weight-bold">
+          {{ user.usercountrycode }}{{ user.userphonenumber }}
+        </td>
+        <!-- <td class="font-weight-bold"> {{ user.usercountrycode }}</td> -->
+        <td class="font-weight-bold">
+          <img class="card-img-top" src="http://localhost:8080/userprofile/{{ user.image }}" alt="Card image cap"
+            style="width: 25px" />
+        </td>
+        <td>
+          <button mat-raised-button (click)="Onupdatebuttonclick(user._id, user)">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-raised-button (click)="Ondelete(user._id)">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<!--
+<div class="d-flex justify-content-center">
+  <div *ngIf="totalPages > 0">
+    <button mat-raised-button  [disabled]="currentPage === 1" (click)="previousPage()">Previous</button>
+    <span> {{  currentPage  }} </span>
+    <button mat-raised-button [disabled]="currentPage === totalPages" (click)="nextPage()">Next</button>
+  </div>
+</div> -->
+
+<div>
+  <button mat-raised-button (click)="onPageChange(page - 1)" [disabled]="page === 1">
+    Previous
+  </button>
+  <span>{{ page }}</span>
+  <button mat-raised-button (click)="onPageChange(page + 1)" [disabled]="page === totalPage">
+    Next
+  </button>
+</div>

@@ -1,0 +1,72 @@
+<div class="button">
+  <button mat-button mat-stroked-button color="primary" (click)="OnAddbuttonclick()">
+    <mat-icon>add_circle</mat-icon>Add
+  </button>
+</div>
+
+<div class="parentFormContainer">
+  <div id="formContainer" *ngIf = "isshow">
+    <form class="container" [formGroup]="settingForm" (ngSubmit)="OnSubmit()"  >
+
+      <div class="mb-3">
+        <label class=" d-flex justify-content-start" for="location">maximum stop  :
+        </label>
+        <div class="dropdown">
+          <select class="form-select" id="locationSelect" #locationSelect
+            (change)="onSelected(locationSelect.value)"
+            formControlName="maximumstop">
+            <option value>Select location</option>
+            <option *ngFor="let loc of location" [value]="loc">{{ loc }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label d-flex justify-content-start">driverrequest
+          :</label>
+        <div class="dropdown">
+          <select class="form-select" formControlName="driverrequest" #driverrequest
+            (change)="Onselecteddriverrequest(driverrequest.value)">
+            <option value>select driverrequest </option>
+            <option *ngFor="let request of driverrequestaccept" [value]="request">{{
+              request }}</option>
+          </select>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary w-40" id="submitBtn" *ngIf ="addbuttonshow">
+        Add-setting
+      </button>
+      <button type="submit" class="btn btn-primary w-40" id="submitBtn" *ngIf="updatebuttonshow">
+        Update-setting
+      </button>
+    </form>
+  </div>
+</div>
+
+<div class="mx-auto" style="width: 1200px; background-color: rgb(255, 255, 255); ">
+  <br>
+  <table class="table table-hover">
+
+    <thead class="bg-dark text-white">
+      <tr>
+        <th>Maximum Stop </th>
+        <th>Driver Request</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr *ngFor="
+let settting of settingdatabasedata
+
+">
+
+        <td class="font-weight-bold">{{settting.maximumstop}}</td>
+        <td class="font-weight-bold"> {{ settting.driverrequest }}</td>
+        <td> <button mat-raised-button (click)="onupdatesetting(settting._id , settting )">
+            <mat-icon>edit</mat-icon></button>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+</div>

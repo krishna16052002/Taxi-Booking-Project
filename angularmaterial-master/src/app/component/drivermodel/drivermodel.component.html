@@ -1,0 +1,22 @@
+
+
+<h2 mat-dialog-title>Modal Title</h2>
+<mat-dialog-content>
+  <div class="dropdown">
+    <select class="form-select" id="vehicle" #vehicle (change)="onSelectedvehicle(vehicle.value)"
+      formControlName="vehicle_id">
+      <option disabled >Select vehicle </option>
+      <option *ngFor="let vehicle of vehicledata" [value]="vehicle._id
+      ">{{
+        vehicle.vehiclename
+        }}</option>
+    </select>
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="closeDialog()">Cancel</button>
+  <button mat-button mat-dialog-close (click)="vehicledatasave()">Save</button>
+</mat-dialog-actions>
+
+
+
