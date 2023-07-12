@@ -122,3 +122,32 @@ module.exports = router;
 //   }else{}
 //   return res.status(500).send({success: false , error })
 // }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

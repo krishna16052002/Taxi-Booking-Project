@@ -40,10 +40,6 @@ export class RidehistoryComponent {
     private _socketservice: SocketService , private formBuilder: FormBuilder ,     private _vehicle: VehicleService,) { }
 
   ngOnInit() {
-    this.ridehistorydata();
-    this.aftercancelride();
-    this._socketservice.emitridehistory({ data: this.data })
-
     this.searchForm = this.formBuilder.group({
       vehicle_id: [''],
       cashCard: [''],
@@ -52,6 +48,13 @@ export class RidehistoryComponent {
       pickupLocation: [''],
       dropoffLocation: ['']
     });
+    this.ridehistorydata();
+    this.aftercancelride();
+    const formData = this.searchForm.value;
+    console.log(formData);
+    this._socketservice.emitridehistory({ data: formData })
+
+
 
     this._vehicle.getvehicledata().subscribe((res) => {
       this.vehicledata = res;
@@ -157,7 +160,7 @@ export class RidehistoryComponent {
     const formData = this.searchForm.value;
     console.log(formData);
     // console.log('hello');
-  
+
     this._socketservice.emitridehistory({ data: formData })
 
 

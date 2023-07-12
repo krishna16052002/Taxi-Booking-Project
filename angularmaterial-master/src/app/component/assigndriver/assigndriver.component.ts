@@ -1,6 +1,7 @@
 import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Socket } from 'socket.io-client';
+import { PushnotificationService } from 'src/app/service/pushnotification.service';
 import { SocketService } from 'src/app/service/socket.service';
 
 @Component({
@@ -30,10 +31,12 @@ export class AssigndriverComponent {
   constructor(
     public dialogRef: MatDialogRef<AssigndriverComponent>,
     @Inject(MAT_DIALOG_DATA) public data: assigndriverdata,
-    private _socketservice: SocketService
+    private _socketservice: SocketService,
+    private notiservice:PushnotificationService
   ) { }
   ngOnInit() {
     this.changedrivervehicletype();
+    this.notiservice.requestNotificationPermission();
     this.changeassigndriver();
     this.afterrideidnull();
     // console.log(this.data);
@@ -76,6 +79,10 @@ export class AssigndriverComponent {
 
     this._socketservice.onassigndriverdata().subscribe((response) => {
       this.drivers = response.driver;
+      // if(this.drivers == ){
+        this.notiservice.requestNotificationPermission();
+        this.notiservice.sendNotification('Hello, world!');
+      // }
       // console.log(this.drivers);
     });
   }

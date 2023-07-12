@@ -47,7 +47,7 @@ export class ConfirmRideComponent {
   createridedata() {
     this._createrideService.getridedata().subscribe((res) => {
       this.ridedata = res;
-      // console.log(this.ridedata);
+      console.log(this.ridedata);
     });
   }
 
@@ -132,7 +132,7 @@ export class ConfirmRideComponent {
     this._socketservice.emitcancelride({ ride_id: this.ride_id });
   }
 
-  
+
   aftercancelride() {
     this._socketservice.oncancelride('cancelride').subscribe((data: any) => {
         this.createridedata();

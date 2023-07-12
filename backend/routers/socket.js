@@ -6,6 +6,7 @@ const socketIo = require('socket.io');
 const driverModel = require("../models/driver");
 const { mongoose } = require('mongoose')
 const createrideModel = require("../models/createride");
+const { from } = require("nodemailer/lib/mime-node/le-windows");
 const CronJob = require('cron').CronJob;
 
 async function initializeSocket(server) {
@@ -254,6 +255,7 @@ async function initializeSocket(server) {
     socket.on('cancelride', async (data) => {
       console.log(data);
       const ride_id = data.ride_id;
+      console.log(ride_id);
       try {
         const ride = await createrideModel.findByIdAndUpdate(ride_id, { assigned: "cancel" }, { new: true })
         await ride.save();
@@ -343,11 +345,20 @@ async function initializeSocket(server) {
 
     socket.on('ridehistory', async (data) => {
       console.log(data);
-      const paymentOptions = data.cashCard;
-      const fromDate = data.fromdate;
-      const toDate = data.todate;
-      const pickupLocation = data.pickupLocation;
-      const dropoffLocation = data.dropoffLocation;
+      const rideHistoryData = data.data;
+      console.log(rideHistoryData);
+
+      // Accessing individual properties
+      const vehicleId = rideHistoryData.vehicle_id;
+      console.log(vehicleId);
+      const paymentOptions = rideHistoryData.cashCard;
+      console.log(paymentOptions);
+      const fromDate = rideHistoryData.fromdate;
+      const toDate = rideHistoryData.todate;
+      const pickupLocation = rideHistoryData.pickupLocation;
+      const dropoffLocation = rideHistoryData.dropoffLocation;
+     
+      // console.log(paymentOptions , fromDate , toDate , pickupLocation , dropoffLocation)
     
       try {
         let rideHistoryQuery = createrideModel.aggregate([
@@ -410,11 +421,11 @@ async function initializeSocket(server) {
         if (paymentOptions) {
           rideHistoryQuery = rideHistoryQuery.match({ paymentoption: paymentOptions });
         }
-        if (fromDate && toDate) {
+        if ( fromDate && toDate) {
           rideHistoryQuery = rideHistoryQuery.match({
-            created: {
-              $gte: new Date(fromDate),
-              $lte: new Date(toDate)
+            date: {
+              $gte: fromDate,
+              $lte: toDate
             }
           });
         }
@@ -437,6 +448,142 @@ async function initializeSocket(server) {
       }
     });
     
+
+
+    // socket.on('ridehistory', async (data) => {
+    //   console.log(data);
+    //   const rideHistoryData = data.data;
+    //   console.log(rideHistoryData);
+    
+    //   // Accessing individual properties
+    //   const vehicleId = rideHistoryData.vehicle_id;
+    //   console.log(vehicleId);
+    //   const paymentOptions = rideHistoryData.cashCard;
+    //   console.log(paymentOptions);
+    //   const fromDate = rideHistoryData.fromdate;
+    //   const toDate = rideHistoryData.todate;
+    //   const pickupLocation = rideHistoryData.pickupLocation;
+    //   const dropoffLocation = rideHistoryData.dropoffLocation;
+    
+    //   try {
+    //     let rideHistoryQuery = createrideModel.aggregate([
+    //       {
+    //         $match: {
+    //           assigned: { $in: ["cancel", "completed"] },
+    //           $or: [
+    //             { paymentoption: { $regex: paymentOptions, $options: "i" } },
+    //             {
+    //               created: {
+    //                 $gte: fromDate ? new Date(fromDate) : new Date(0),
+    //                 $lte: toDate ? new Date(toDate) : new Date()
+    //               }
+    //             },
+    //             pickupLocation
+    //               ? { startlocation: { $regex: pickupLocation, $options: "i" } }
+    //               : {},
+    //             dropoffLocation
+    //               ? { destinationlocation: { $regex: dropoffLocation, $options: "i" } }
+    //               : {}
+    //           ]
+    //         }
+    //       },
+    //       {
+    //         $facet: {
+    //           filteredData: [
+    //             {
+    //               $lookup: {
+    //                 from: "users",
+    //                 localField: "user_id",
+    //                 foreignField: "_id",
+    //                 as: "userdata"
+    //               }
+    //             },
+    //             {
+    //               $unwind: "$userdata"
+    //             },
+    //             {
+    //               $lookup: {
+    //                 from: "cities",
+    //                 localField: "city_id",
+    //                 foreignField: "_id",
+    //                 as: "citydata"
+    //               }
+    //             },
+    //             {
+    //               $unwind: "$citydata"
+    //             },
+    //             {
+    //               $lookup: {
+    //                 from: "vehicles",
+    //                 localField: "vehicle_id",
+    //                 foreignField: "_id",
+    //                 as: "vehicledata"
+    //               }
+    //             },
+    //             {
+    //               $unwind: "$vehicledata"
+    //             },
+    //             {
+    //               $lookup: {
+    //                 from: "drivers",
+    //                 localField: "driver_id",
+    //                 foreignField: "_id",
+    //                 as: "driverdata"
+    //               }
+    //             },
+    //             {
+    //               $unwind: {
+    //                 path: "$driverdata",
+    //                 preserveNullAndEmptyArrays: true
+    //               }
+    //             },
+    //             {
+    //               $match: {
+    //                 $or: [
+    //                   { paymentoption: paymentOptions },
+    //                   {
+    //                     created: {
+    //                       $gte: fromDate ? new Date(fromDate) : new Date(0),
+    //                       $lte: toDate ? new Date(toDate) : new Date()
+    //                     }
+    //                   },
+    //                   pickupLocation
+    //                     ? { startlocation: { $regex: pickupLocation, $options: "i" } }
+    //                     : {},
+    //                   dropoffLocation
+    //                     ? { destinationlocation: { $regex: dropoffLocation, $options: "i" } }
+    //                     : {}
+    //                 ]
+    //               }
+    //             }
+    //           ],
+    //           totalCount: [
+    //             {
+    //               $match: {
+    //                 assigned: { $in: ["cancel", "completed"] }
+    //               }
+    //             },
+    //             {
+    //               $count: "count"
+    //             }
+    //           ]
+    //         }
+    //       }
+      
+    //     ]);
+    
+    //     const rideHistoryResult = await rideHistoryQuery.exec();
+    //     const filteredData = rideHistoryResult[0].filteredData;
+    //     const totalCount = rideHistoryResult[0].totalCount;
+    
+    //     io.emit("ridehistory", { ridehistorydata: filteredData, totalCount });
+    //     console.log(filteredData);
+    //   } catch (error) {
+    //     console.error(error);
+    //   }
+    // });
+    
+
 
     socket.on('ridehistorydata', async (data) => {
       const search = data.search;

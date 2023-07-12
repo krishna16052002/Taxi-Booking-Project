@@ -69,7 +69,8 @@
       <div class="mb-3">
         <label class="form-label d-flex justify-content-start"> Driver Profit :</label>
         <input class="form-control" formControlName="driverprofit"
-        type="text"oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/(\..*)\./g, '$1');"/>
+
+        type="text" oninput="if (this.value.startsWith('0')) { this.value = this.value.substring(1); } this.value = this.value.replace(/[^0-9\.]/g, '').replace(/(\..*)\./g, '$1');" />
       </div>
       <div
         *ngIf="vehiclepricingform.get('driverprofit')?.invalid && (vehiclepricingform.get('driverprofit')?.dirty || vehiclepricingform.get('driverprofit')?.touched)">
@@ -80,7 +81,7 @@
       <div class="mb-3">
         <label class="form-label d-flex justify-content-start"> Min Fare :</label>
         <input class="form-control" formControlName="minfare"
-        type="text"oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/(\..*)\./g, '$1');" />
+        type="text" oninput="if (this.value.startsWith('0')) { this.value = this.value.substring(1); } this.value = this.value.replace(/[^0-9\.]/g, '').replace(/(\..*)\./g, '$1');"  />
       </div>
       <div
         *ngIf="vehiclepricingform.get('minfare')?.invalid && (vehiclepricingform.get('minfare')?.dirty || vehiclepricingform.get('minfare')?.touched)">
@@ -91,7 +92,7 @@
       <div class="mb-3">
         <label class="form-label d-flex justify-content-start">Distance for Base
           price :</label>
-          <input type="text"oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/(\..*)\./g, '$1');"
+          <input type="text" oninput="if (this.value.startsWith('0')) { this.value = this.value.substring(1); } this.value = this.value.replace(/[^0-9\.]/g, '').replace(/(\..*)\./g, '$1');"
           class="form-control" formControlName="distanceforbaseprice" />
       </div>
       <div
@@ -102,7 +103,7 @@
       </div>
       <div class="mb-3">
         <label class="form-label d-flex justify-content-start">Base price :</label>
-        <input type="text"oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/(\..*)\./g, '$1');"
+        <input type="text"  oninput="if (this.value.startsWith('0')) { this.value = this.value.substring(1); } this.value = this.value.replace(/[^0-9\.]/g, '').replace(/(\..*)\./g, '$1');"
           class="form-control" formControlName="baseprice" />
       </div>
       <div
@@ -114,7 +115,7 @@
       <div class="mb-3">
         <label class="form-label d-flex justify-content-start">price per unit
           distance :</label>
-        <input type="text"oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/(\..*)\./g, '$1');"
+        <input type="text" oninput="if (this.value.startsWith('0')) { this.value = this.value.substring(1); } this.value = this.value.replace(/[^0-9\.]/g, '').replace(/(\..*)\./g, '$1');"
           class="form-control" formControlName="priceperunitdistance" />
       </div>
       <div
@@ -126,7 +127,7 @@
       <div class="mb-3">
         <label class="form-label d-flex justify-content-start">price per unit
           Time :</label>
-          <input type="text" class="form-control" formControlName="priceperunittime" oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/(\..*)\./g, '$1');" />
+          <input type="text" class="form-control" formControlName="priceperunittime" oninput="if (this.value.startsWith('0')) { this.value = this.value.substring(1); } this.value = this.value.replace(/[^0-9\.]/g, '').replace(/(\..*)\./g, '$1');" />
         <!-- <input type="text" oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/(\..*)\./g, '$1');"
           class="form-control" formControlName="priceperunittime" /> -->
       </div>
@@ -138,7 +139,7 @@
       </div>
       <div class="mb-3">
         <label class="form-label d-flex justify-content-start">Max space :</label>
-        <input type="text" class="form-control" formControlName="maxspace" oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/(\..*)\./g, '$1');" />
+        <input type="text" class="form-control" formControlName="maxspace" oninput="if (this.value.startsWith('0')) { this.value = this.value.substring(1); } this.value = this.value.replace(/[^0-9]/g, '').replace(/(\..*)\./g, '$1');" />
         <!-- <input type="text" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" class="form-control" formControlName="maxspace" /> -->
       </div>
       <div

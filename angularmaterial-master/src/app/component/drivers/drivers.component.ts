@@ -344,6 +344,7 @@ export class DriversComponent {
   }
 
   OnSubmit() {
+    
     if(this.driverForm.invalid){
       this.driverForm.markAllAsTouched();
       return
@@ -378,7 +379,7 @@ export class DriversComponent {
           // });
           this.toster.success(res.message);
           this.Driverdata();
-          this.driverForm.reset();
+          // this.driverForm.reset();
         },
         error: (error) => {
           console.log(error.error.message);

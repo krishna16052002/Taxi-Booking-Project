@@ -89,7 +89,7 @@ export class SocketService {
    onrunningrequest(runningrequest:any):Observable<any>{
     return new Observable((observer) => {
       this.socket.on('runningrequest', (data) => {
-        // console.log(data);
+        console.log(data);
         observer.next(data);
       });
     });
@@ -152,5 +152,5 @@ onridehistory(ridehistory:any):Observable<any>{
  }
 
 
- 
+
 }

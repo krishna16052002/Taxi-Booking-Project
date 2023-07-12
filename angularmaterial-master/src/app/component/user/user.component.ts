@@ -41,7 +41,7 @@ totalPages: number = 0;
   query: any;
 // data
 page: number = 1;
-limit: number = 5;
+limit: number = 2;
 search: string = '';
 sortField: string = '';
 sortOrder: string = 'asc';

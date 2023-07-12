@@ -16,6 +16,7 @@ export class RunningrequestComponent {
     'pickupLocation',
     'destinationLocation',
     'service',
+    'driver',
     'action'
   ];
   runningrequestdata: any;
@@ -34,7 +35,9 @@ export class RunningrequestComponent {
    runningridedata(){
     this._socketservice.onrunningrequest('runningrequest').subscribe((data: any) => {
       this.ridedata = data;
+
       this.runningrequestdata = this.ridedata.runningrequestdata
+      console.log(this.runningrequestdata);
     });
 
    }

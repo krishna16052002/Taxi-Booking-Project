@@ -19,6 +19,7 @@
         <form class="container" [formGroup]="countryForm" (ngSubmit)="OnSubmit()">
           <div class="dropdown">
             <select name="country" #country (change)="onSelected(country.value)">
+              <option>Select country  </option>
               <option [value]="" *ngFor="let country of countrydata ">{{country.name.common}}</option>
             </select>
           </div>
