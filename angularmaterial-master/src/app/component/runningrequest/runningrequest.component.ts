@@ -61,7 +61,7 @@ export class RunningrequestComponent {
      this._socketservice.emitrejectedride({ride_id: this.ride_id , driver_id : this.driver_id })
    }
 
-// after ruide rejected
+// after ride rejected
    afterrideidnull(){
     this._socketservice.onrejectedride('riderejected').subscribe((data: any) => {
       this._socketservice.emitridedata(this.ridedata);

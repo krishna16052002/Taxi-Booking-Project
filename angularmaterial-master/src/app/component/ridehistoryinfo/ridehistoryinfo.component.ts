@@ -83,6 +83,10 @@ export class RidehistoryinfoComponent {
 
 
   drawPolyline() {
+    const bounds = new google.maps.LatLngBounds();
+    bounds.extend(this.startingplace);
+    bounds.extend(this.destinationplace);
+    this.map.fitBounds(bounds);
     this.polyline = new google.maps.Polyline({
       path: [this.startingplace, this.destinationplace],
       geodesic: true,

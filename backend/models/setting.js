@@ -7,7 +7,9 @@ const settingSchema = new mongoose.Schema({
     },
     driverrequest:{
         type:Number
-    }
+    },
+    assountsid:{},
+    authtoken:{}
 })
 
 const setting = mongoose.model('setting',settingSchema)

@@ -1,9 +1,11 @@
 const express = require('express');
-const accountSid = 'AC061405c02eaa8d6694f85f0f9b20f6e4';
-const authToken = '444d2165694de70424dbf30769821505';
-const client = require('twilio')(accountSid, authToken);
+require('dotenv').config();
+// const accountSid = process.env.ACCOUNTSID;
+// const authToken = process.env.AUTHTOKEN;
+// const client = require('twilio')(accountSid, authToken);
 const createrideModel = require("../models/createride");
 const driverModel = require("../models/driver");
+const settingModel = require("../models/setting");
 // const accountSid = 'AC061405c02eaa8d6694f85f0f9b20f6e4';
 // const authToken = '[444d2165694de70424dbf30769821505]';
 // const client = require('twilio')(accountSid, authToken);
@@ -30,18 +32,20 @@ const router = express();
 
 
 
-async function sendmessage() {
-  try {
-    const message = await client.messages.create({
-      body: 'Hello twilio',
-      from: '+14175052749',
-      to: '+918733930293'
-    });
-    console.log(message.sid, 'message');
-  } catch (error) {
-    console.log('Error sending message:', error);
-  }
-}
+// function sendmessage() {
+
+  
+//   try {
+//     const message = client.messages.create({
+//       body: 'heyy',
+//       from: '+14175052749',
+//       to: '+919484881886'
+//     });
+//     console.log(message.sid, 'message');
+//   } catch (error) {
+//     console.log('Error sending message:', error);
+//   }
+// }
 
 
 router.post('/createride', async (req, res) => {
@@ -49,14 +53,6 @@ router.post('/createride', async (req, res) => {
   try {
     const ride = new createrideModel(req.body)
     await ride.save();
-    // client.messages
-    // .create({
-    //     body: 'HELLOOOOO',
-    //     from: '+14175052749',
-    //     to: '+919484881886'
-    // })
-    // .then(message => console.log(message.sid))
-    // .done();
     res.send(ride)
     // sendmessage();
   } catch (error) {
@@ -187,10 +183,6 @@ router.patch('/createride/:id', async (req, res) => {
 //     res.status(500).send(error)
 //   }
 // })
-
-
-
-
 
 
 module.exports = router;

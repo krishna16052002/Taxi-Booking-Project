@@ -16,7 +16,7 @@ export class SettingService {
  getsetting(){
    return this.http.get<any>("http://localhost:8080/setting")
  }
- updatesetting(_id: any  , setting : any ): Observable<any> {
-  return this.http.patch(`http://localhost:8080/setting/`+_id , setting)}
+ updatesetting(setting : any ): Observable<any> {
+  return this.http.patch(`http://localhost:8080/setting/`, setting)}
 
 }

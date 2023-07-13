@@ -24,6 +24,9 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage: storage,
   fileFilter: imageFileFilter,
+  // limits: 2 * 1000 *1000
+  limits:   {fileSize:100}
+
 });
 
 router.post("/vehicletype", upload.single("image"), async (req, res) => {
@@ -50,10 +53,10 @@ router.post("/vehicletype", upload.single("image"), async (req, res) => {
       message: " Hureee finallyyy add vehicle successfully ",
     });
   } catch (error) {
-    console.log(error);
+    
     if(error.keyPattern){
       if (error.keyPattern.vehiclename) {
-        return res.status(500).send({
+        return res.status(404).send({
           success: false,
           message: "Vehicle already exist!!!!!!!!!!!!!!!!!!!!" 
         })

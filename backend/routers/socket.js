@@ -9,12 +9,15 @@ const createrideModel = require("../models/createride");
 const { from } = require("nodemailer/lib/mime-node/le-windows");
 const CronJob = require('cron').CronJob;
 
+
+
 async function initializeSocket(server) {
   const io = socketIo(server, { cors: { origin: ['http://localhost:4200'] } });
 
   io.on('connection', (socket) => {
     console.log('Socket connected');
 
+    
     // Assuming you have a socket instance available
 
     socket.on("assigndriverdata", async (data) => {
@@ -416,7 +419,9 @@ async function initializeSocket(server) {
             }
           }
         ]);
-    
+        // if(vehicleId){
+        //   rideHistoryQuery = rideHistoryQuery.match({vehicle_id : vehicleId });
+        // }
         // Apply filters based on parameters
         if (paymentOptions) {
           rideHistoryQuery = rideHistoryQuery.match({ paymentoption: paymentOptions });

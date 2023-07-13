@@ -12,6 +12,7 @@ import { ToastrService } from 'ngx-toastr';
 })
 export class LoginComponent {
   Loginform!: FormGroup;
+
   submitted = false;
   constructor(private formBuilder: FormBuilder, private _auth: AuthService , private _router : Router, private toster: ToastrService)  {}
 
@@ -21,6 +22,8 @@ export class LoginComponent {
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required]],
     });
+
+
   }
 
   OnSubmit() {

@@ -9,8 +9,6 @@ import { SettingService } from 'src/app/service/setting.service';
   styleUrls: ['./settings.component.css'],
 })
 export class SettingsComponent {
-
-
   driverrequestaccept: string[] = ['10', '20', '30', '40', '60', '90', '120'];
 
   location: string[] = ['1', '2', '3', '4', '5'];
@@ -24,26 +22,43 @@ export class SettingsComponent {
   locationvalue: any;
   driverrequestacceptvalue: any;
   settingdatabasedata: any;
-  updatebuttonshow: boolean = false;
-  addbuttonshow : boolean = false ;
   id: any;
-  isshow : boolean = false ;
-  addupdate: any
+  addupdate: any;
+  maximumstop: any;
 
-  constructor(private formbuilder: FormBuilder , private _settingService : SettingService ,   private toster: ToastrService,) {}
+  constructor(
+    private formbuilder: FormBuilder,
+    private _settingService: SettingService,
+    private toster: ToastrService
+  ) {}
 
   ngOnInit() {
+    this.getsettingdata();
     this.settingForm = this.formbuilder.group({
-      maximumstop: ['' , Validators.required],
+      maximumstop: ['', Validators.required],
       driverrequest: ['', Validators.required],
+      assountsid:[''],
+      authtoken : [''],
+      email:['',],
+      password : [''],
+      public : [''],
+      secreat : ['']
+
     });
+  }
 
-
-    this._settingService.getsetting().subscribe((Response)=>{
+  getsettingdata() {
+    this._settingService.getsetting().subscribe((Response) => {
       console.log(Response);
-      this.settingdatabasedata = Response;
+      this.settingdatabasedata = Response[0];
 
-    })
+      this.settingForm.patchValue({
+        maximumstop: this.settingdatabasedata.maximumstop,
+        driverrequest: this.settingdatabasedata.driverrequest,
+        assountsid: this.settingdatabasedata.assountsid,
+        authtoken :this.settingdatabasedata.authtoken,
+      });
+    });
   }
 
   onSelected(value: any) {
@@ -56,78 +71,30 @@ export class SettingsComponent {
     this.driverrequestacceptvalue = value;
     console.log(this.driverrequestacceptvalue);
   }
-  OnAddbuttonclick(){
-    this.isshow = true ;
-    this.addbuttonshow = true ;
-    this.updatebuttonshow = false;
-    this.settingForm.reset();
-  }
 
-  onupdatesetting(_id: string, setting: any) {
-    console.log(_id);
-    this.id = _id
-
-    this.addbuttonshow = false;
-    this.updatebuttonshow = true;
-
-    this.settingForm.patchValue({
-      maximumstop : setting.maximumstop,
-      driverrequest : setting.driverrequest
-    })
-    }
 
   OnSubmit() {
-
-    if(this.settingForm.invalid){
+    if (this.settingForm.invalid) {
       this.settingForm.markAllAsTouched();
       return;
     }
-    // const formValue = this.settingForm.value;
+    const formValue = this.settingForm.value;
     const settingdata: any = {
       maximumstop: this.locationvalue,
       driverrequest: this.driverrequestacceptvalue,
+      assountsid: formValue.assountsid,
+      authtoken: formValue.authtoken
     };
 
-
-    if(this.addupdate){
-      this._settingService.updatesetting(settingdata, this.id).subscribe({
-        next: (res: any) => {
-          let updateted = this.settingdatabasedata.find((obj: any) => {
-            return obj._id === res._id
-          })
-          // console.log(updatetedVehicle);
-          let key = Object.keys(updateted)
-
-          key.forEach((key: any) => {
-            updateted[key] = res[key]
-          })
-          this.settingForm.reset();
-          this.toster.success(res.message);
-          // let objToUpdate = this.vehicledatadfghjk.push(function (obj: any) {
-          //   return obj._id == updateId})
-
-        },
-        error: (error) => {
-          console.log(error.error.message);
-          this.toster.warning(error.error.message)
-        }
-      });
-    }else{
-      this._settingService.addsetting(settingdata).subscribe({
-        next: (res: any) => {
-          this.settingdatabasedata.push(res.pricingdata);
-          this.toster.success(res.message);
-          this.settingForm.reset();
-        },
-        error: (error) => {
-          console.log(error.error.message);
-          this.toster.warning(error.error.message);
-        }
-      });
-    }
-
+    this._settingService.updatesetting(settingdata).subscribe({
+      next: (res: any) => {
+        this.getsettingdata();
+        this.toster.success('update setting succesfull');
+      },
+      error: (error) => {
+        console.log(error.error.message);
+        this.toster.warning(error.error.message);
+      },
+    });
   }
-
-
-
 }

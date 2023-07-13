@@ -12,5 +12,6 @@ export class MenubarComponent {
   badgevisibility() {
     this.badgevisible = true;
   }
+  logoutTimer: any;
   constructor(public authservices : AuthService){}
 }
