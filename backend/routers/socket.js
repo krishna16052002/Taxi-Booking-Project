@@ -346,6 +346,7 @@ async function initializeSocket(server) {
     //   }
     // });
 
+    
     socket.on('ridehistory', async (data) => {
       console.log(data);
       const rideHistoryData = data.data;

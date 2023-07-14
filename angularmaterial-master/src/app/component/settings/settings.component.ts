@@ -39,8 +39,8 @@ export class SettingsComponent {
       driverrequest: ['', Validators.required],
       assountsid:[''],
       authtoken : [''],
-      email:['',],
-      password : [''],
+      emailusername:['',],
+      emailpassword : [''],
       public : [''],
       secreat : ['']
 
@@ -57,6 +57,8 @@ export class SettingsComponent {
         driverrequest: this.settingdatabasedata.driverrequest,
         assountsid: this.settingdatabasedata.assountsid,
         authtoken :this.settingdatabasedata.authtoken,
+        emailusername:this.settingdatabasedata.emailusername,
+        emailpassword :this.settingdatabasedata.emailpassword,
       });
     });
   }
@@ -83,7 +85,9 @@ export class SettingsComponent {
       maximumstop: this.locationvalue,
       driverrequest: this.driverrequestacceptvalue,
       assountsid: formValue.assountsid,
-      authtoken: formValue.authtoken
+      authtoken: formValue.authtoken,
+      emailpassword : formValue.emailpassword,
+      emailusername:formValue.emailusername
     };
 
     this._settingService.updatesetting(settingdata).subscribe({

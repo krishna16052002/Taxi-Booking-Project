@@ -5,20 +5,20 @@ import { Injectable } from '@angular/core';
 })
 export class PushnotificationService {
 
-  requestNotificationPermission(): void {
-    if ('Notification' in window) {
-      Notification.requestPermission().then((permission) => {
-        console.log('Notification permission:', permission);
-      });
-    }
-  }
+//   requestNotificationPermission(): void {
+//     if ('Notification' in window) {
+//       Notification.requestPermission().then((permission) => {
+//         console.log('Notification permission:', permission);
+//       });
+//     }
+//   }
 
-  sendNotification(message: string): void {
+//   sendNotification(message: string): void {
 
-    if ('Notification' in window && Notification.permission === 'granted') {
-      const notification = new Notification('Push Notification', {
-        body: message,
-      });
-    }
-  }
+//     if ('Notification' in window && Notification.permission === 'granted') {
+//       const notification = new Notification('Push Notification', {
+//         body: message,
+//       });
+//     }
+//   }
 }

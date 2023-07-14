@@ -21,6 +21,9 @@ const userschema = new mongoose.Schema({
     image: {
         type: String,
     },
+    customer_id:{
+        
+    }
 });
 
 const user = mongoose.model("user", userschema);

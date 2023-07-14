@@ -9,7 +9,9 @@ const settingSchema = new mongoose.Schema({
         type:Number
     },
     assountsid:{},
-    authtoken:{}
+    authtoken:{},
+    emailusername :{},
+    emailpassword:{}
 })
 
 const setting = mongoose.model('setting',settingSchema)

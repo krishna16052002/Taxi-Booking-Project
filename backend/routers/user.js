@@ -4,184 +4,513 @@ const multer = require("multer");
 const userModel = require("../models/user");
 const bodyparser = require("body-parser");
 router.use(bodyparser.json());
+const nodemailer = require("nodemailer");
+const STRIPE_PUBLISHABLE_KEY="pk_test_51NTisDLigteWfcRnZkQoTywuss8lTd3CUnil3xexs59lKQIlJcgEeJWCiMuExlDGlmtazauK0nBRj1hk6HoZOx9Q00Wt2DV8X0"
+const STRIPE_SECRET_KEY="sk_test_51NTisDLigteWfcRny45x5AlKwqwtjLMkZEAdwNkYCVzPuqMzbIJc66gNtYqenVaVdBuiyyCY3u9e2joX9LHSdVpz002bL4TERD"
+const stripe = require('stripe')(STRIPE_SECRET_KEY)
 
 
-const imageFileFilter = (req, file, cb) => {
-    if (file.mimetype.startsWith("image")) {
-        cb(null, true);
-    } else {
-        cb(new Error("Only image files are allowed."), false);
+// for send mail 
+
+const sendMail = async (req, res) => {
+
+  const transporter = nodemailer.createTransport({
+    host: 'smtp.ethereal.email',
+    port: 587,
+    auth: {
+      user: process.env.EMAILUSERNAME,
+      pass: process.env.EMAILPASSWORD
     }
+  });
+
+  let info = await transporter.sendMail({
+    from: 'info@ethereal.email', // sender address
+    to: "krishnahothi.elluminatiinc@gmail.com", // list of receivers
+    subject: "User Registration", // Subject line      
+    text: "Your User Registration is succesfullllllllllll", // plain text body
+    html: `<!DOCTYPE html>
+   
+     
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Invoice</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="license" href="https://www.opensource.org/licenses/mit-license/">
+  <script src="script.js"></script>
+  <style>/* reset */
+
+  *
+  {
+    border: 0;
+    box-sizing: content-box;
+    color: inherit;
+    font-family: inherit;
+    font-size: inherit;
+    font-style: inherit;
+    font-weight: inherit;
+    line-height: inherit;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    text-decoration: none;
+    vertical-align: top;
+  }
+  
+  /* content editable */
+  
+  *[contenteditable] { border-radius: 0.25em; min-width: 1em; outline: 0; }
+  
+  *[contenteditable] { cursor: pointer; }
+  
+  *[contenteditable]:hover, *[contenteditable]:focus, td:hover *[contenteditable], td:focus *[contenteditable], img.hover { background: #DEF; box-shadow: 0 0 1em 0.5em #DEF; }
+  
+  span[contenteditable] { display: inline-block; }
+  
+  /* heading */
+  
+  h1 { font: bold 100% sans-serif; letter-spacing: 0.5em; text-align: center; text-transform: uppercase; }
+  
+  /* table */
+  
+  table { font-size: 75%; table-layout: fixed; width: 100%; }
+  table { border-collapse: separate; border-spacing: 2px; }
+  th, td { border-width: 1px; padding: 0.5em; position: relative; text-align: left; }
+  th, td { border-radius: 0.25em; border-style: solid; }
+  th { background: #EEE; border-color: #BBB; }
+  td { border-color: #DDD; }
+  
+  /* page */
+  
+  html { font: 16px/1 'Open Sans', sans-serif; overflow: auto; padding: 0.5in; }
+  html { background: #999; cursor: default; }
+  
+  body { box-sizing: border-box; height: 11in; margin: 0 auto; overflow: hidden; padding: 0.5in; width: 8.5in; }
+  body { background: #FFF; border-radius: 1px; box-shadow: 0 0 1in -0.25in rgba(0, 0, 0, 0.5); }
+  
+  /* header */
+  
+  header { margin: 0 0 3em; }
+  header:after { clear: both; content: ""; display: table; }
+  
+  header h1 { background: #000; border-radius: 0.25em; color: #FFF; margin: 0 0 1em; padding: 0.5em 0; }
+  header address { float: left; font-size: 75%; font-style: normal; line-height: 1.25; margin: 0 1em 1em 0; }
+  header address p { margin: 0 0 0.25em; }
+  header span, header img { display: block; float: right; }
+  header span { margin: 0 0 1em 1em; max-height: 25%; max-width: 60%; position: relative; }
+  header img { max-height: 100%; max-width: 100%; }
+  header input { cursor: pointer; -ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=0)"; height: 100%; left: 0; opacity: 0; position: absolute; top: 0; width: 100%; }
+  
+  /* article */
+  
+  article, article address, table.meta, table.inventory { margin: 0 0 3em; }
+  article:after { clear: both; content: ""; display: table; }
+  article h1 { clip: rect(0 0 0 0); position: absolute; }
+  
+  article address { float: left; font-size: 125%; font-weight: bold; }
+  
+  /* table meta & balance */
+  
+  table.meta, table.balance { float: right; width: 36%; }
+  table.meta:after, table.balance:after { clear: both; content: ""; display: table; }
+  
+  /* table meta */
+  
+  table.meta th { width: 40%; }
+  table.meta td { width: 60%; }
+  
+  /* table items */
+  
+  table.inventory { clear: both; width: 100%; }
+  table.inventory th { font-weight: bold; text-align: center; }
+  
+  table.inventory td:nth-child(1) { width: 26%; }
+  table.inventory td:nth-child(2) { width: 38%; }
+  table.inventory td:nth-child(3) { text-align: right; width: 12%; }
+  table.inventory td:nth-child(4) { text-align: right; width: 12%; }
+  table.inventory td:nth-child(5) { text-align: right; width: 12%; }
+  
+  /* table balance */
+  
+  table.balance th, table.balance td { width: 50%; }
+  table.balance td { text-align: right; }
+  
+  /* aside */
+  
+  aside h1 { border: none; border-width: 0 0 1px; margin: 0 0 1em; }
+  aside h1 { border-color: #999; border-bottom-style: solid; }
+  
+  /* javascript */
+  
+  .add, .cut
+  {
+    border-width: 1px;
+    display: block;
+    font-size: .8rem;
+    padding: 0.25em 0.5em;	
+    float: left;
+    text-align: center;
+    width: 0.6em;
+  }
+  
+  .add, .cut
+  {
+    background: #9AF;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    background-image: -moz-linear-gradient(#00ADEE 5%, #0078A5 100%);
+    background-image: -webkit-linear-gradient(#00ADEE 5%, #0078A5 100%);
+    border-radius: 0.5em;
+    border-color: #0076A3;
+    color: #FFF;
+    cursor: pointer;
+    font-weight: bold;
+    text-shadow: 0 -1px 2px rgba(0,0,0,0.333);
+  }
+  
+  .add { margin: -2.5em 0 0; }
+  
+  .add:hover { background: #00ADEE; }
+  
+  .cut { opacity: 0; position: absolute; top: 0; left: -1.5em; }
+  .cut { -webkit-transition: opacity 100ms ease-in; }
+  
+  tr:hover .cut { opacity: 1; }
+  
+  @media print {
+    * { -webkit-print-color-adjust: exact; }
+    html { background: none; padding: 0; }
+    body { box-shadow: none; margin: 0; }
+    span:empty { display: none; }
+    .add, .cut { display: none; }
+  }
+  
+  @page { margin: 0; }</style>
+</head>
+<body>
+  <header>
+    <h1>Invoice</h1>
+    <address contenteditable>
+      <p>Jonathan Neal</p>
+      <p>101 E. Chapman Ave<br>Orange, CA 92866</p>
+      <p>(800) 555-1234</p>
+    </address>
+    <span><img alt="" src="http://www.jonathantneal.com/examples/invoice/logo.png"><input type="file" accept="image/*"></span>
+  </header>
+  <article>
+    <h1>Recipient</h1>
+    <address contenteditable>
+      <p>Some Company<br>c/o Some Guy</p>
+    </address>
+    <table class="meta">
+      <tr>
+        <th><span contenteditable>Invoice #</span></th>
+        <td><span contenteditable>101138</span></td>
+      </tr>
+      <tr>
+        <th><span contenteditable>Date</span></th>
+        <td><span contenteditable>January 1, 2012</span></td>
+      </tr>
+      <tr>
+        <th><span contenteditable>Amount Due</span></th>
+        <td><span id="prefix" contenteditable>$</span><span>600.00</span></td>
+      </tr>
+    </table>
+    <table class="inventory">
+      <thead>
+        <tr>
+          <th><span contenteditable>Item</span></th>
+          <th><span contenteditable>Description</span></th>
+          <th><span contenteditable>Rate</span></th>
+          <th><span contenteditable>Quantity</span></th>
+          <th><span contenteditable>Price</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><a class="cut">-</a><span contenteditable>Front End Consultation</span></td>
+          <td><span contenteditable>Experience Review</span></td>
+          <td><span data-prefix>$</span><span contenteditable>150.00</span></td>
+          <td><span contenteditable>4</span></td>
+          <td><span data-prefix>$</span><span>600.00</span></td>
+        </tr>
+      </tbody>
+    </table>
+    <a class="add">+</a>
+    <table class="balance">
+      <tr>
+        <th><span contenteditable>Total</span></th>
+        <td><span data-prefix>$</span><span>600.00</span></td>
+      </tr>
+      <tr>
+        <th><span contenteditable>Amount Paid</span></th>
+        <td><span data-prefix>$</span><span contenteditable>0.00</span></td>
+      </tr>
+      <tr>
+        <th><span contenteditable>Balance Due</span></th>
+        <td><span data-prefix>$</span><span>600.00</span></td>
+      </tr>
+    </table>
+  </article>
+  <aside>
+    <h1><span contenteditable>Additional Notes</span></h1>
+    <div contenteditable>
+      <p>A finance charge of 1.5% will be made on unpaid balances after 30 days.</p>
+    </div>
+  </aside>
+</body>
+</html>
+    </body>
+    </html>`
+    ,
+  });
+
+  console.log("Message sent: %s", info.messageId);
+  // res.json(info);
 };
 
-// Configure multer with the desired storage and file filter
+//  create a multer for image 
+const imageFileFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith("image")) {
+    cb(null, true);
+  } else {
+    cb(new Error("Only image files are allowed."), false);
+  }
+};
+
 const storage = multer.diskStorage({
-    destination: "public/userprofile",
-    filename: (req, file, cb) => {
-        cb(null, file.originalname);
-    },
+  destination: "public/userprofile",
+  filename: (req, file, cb) => {
+    cb(null, file.originalname);
+  },
 });
 
 const upload = multer({
-    storage: storage,
-    fileFilter: imageFileFilter,
+  storage: storage,
+  fileFilter: imageFileFilter,
 });
 
+//  create a api for add user 
 router.post("/user", upload.single("image"), async (req, res) => {
-    try {
-        let userdata;
-     
-            userdata =  new userModel({
-                username: req.body.username,
-                useremail: req.body.useremail,
-                userphonenumber: req.body.userphonenumber,
-                usercountrycode: req.body.usercountrycode,
-                image: req.file.originalname,
-            })
+  try {
+    let userdata;
 
-       await userdata.save();
-        console.log(userdata);
-        res.send({
-            success: true,
-            userdata,
-            message: "add user successfully ",
-        });
-    } catch (error) {
-        console.log(error);
-        if (error.keyPattern) {
-            if (error.keyPattern.useremail) {
-                return res.status(500).send({
-                    success: false,
-                    message: "email already exist!!!!! "
-                })
-            } else {
-                return res.status(500).send({
-                    success: false,
-                    message: "phone number already exist!!!!!"
-                })
-            }
-        }
+    userdata = new userModel({
+      username: req.body.username,
+      useremail: req.body.useremail,
+      userphonenumber: req.body.userphonenumber,
+      usercountrycode: req.body.usercountrycode,
+      image: req.file.originalname,
+    })
+    const customer = await stripe.customers.create({
+      name:req.body.username,
+      email:req.body.useremail,
+  });
 
-        res.status(500).send(error)
+    await userdata.save();
+    console.log(userdata);
+    res.send({
+      success: true,
+      userdata,
+      customer,
+      message: "add user successfully ",
+    });
+    sendMail();
+  } catch (error) {
+    console.log(error);
+    if (error.keyPattern) {
+      if (error.keyPattern.useremail) {
+        return res.status(500).send({
+          success: false,
+          message: "email already exist!!!!! "
+        })
+      } else {
+        return res.status(500).send({
+          success: false,
+          message: "phone number already exist!!!!!"
+        })
+      }
     }
-});
 
-// get the data 
-router.get("/user", async (req, res) => {
-    try {
-      const userdata = await userModel.find();
-      res.send(userdata);
-    } catch (error) {
-      res.send(error);
-    }  
-})
+    res.status(500).send(error)
+  }
+});
 
 // update user 
 
-
-
-router.patch('/user/:id', upload.single("image") , async(req,res)=>{
+router.patch('/user/:id', upload.single("image"), async (req, res) => {
   console.log(req.body);
   console.log(req.file);
-
   const _id = req.params.id;
-
-
-  try{
-    const updateUser = await userModel.findByIdAndUpdate(_id, req.body ,{new: true}); 
-
-  if (req.file) {
-    updateUser.image= req.file.originalname
-  }
-  await updateUser.save();
+  try {
+    const updateUser = await userModel.findByIdAndUpdate(_id, req.body, { new: true });
+   
+    
+    if (req.file) {
+      updateUser.image = req.file.originalname
+    }
+    await updateUser.save();
     // console.log(updateUser);
-    res.send({updateUser, success:true , message:"update user successfully !!!"}); 
+    res.send({ updateUser , customer, success: true, message: "update user successfully !!!" });
+    
   }
-  catch(error){ 
+  catch (error) {
     console.log(error);
     if (error.keyPattern) {
-              if (error.keyPattern.useremail) {
-                  return res.status(500).send({
-                      success: false,
-                      message: "email already exist!!!!! "
-                  })
-              } else {
-                  return res.status(500).send({
-                      success: false,
-                      message: "phone number already exist!!!!!"
-                  })
-              }
+      if (error.keyPattern.useremail) {
+        return res.status(500).send({
+          success: false,
+          message: "email already exist!!!!! "
+        })
+      } else {
+        return res.status(500).send({
+          success: false,
+          message: "phone number already exist!!!!!"
+        })
+      }
     }
 
-    return res.status(500).send({success: false , message: " please add vehicle "})
+    return res.status(500).send({ success: false, message: " please add vehicle " })
   }
 });
+
+
+//   delete user 
+router.delete("/user/:id", async (req, res) => {
+  try {
+    const _id = req.params.id;
+    const deleteuser = await userModel.findByIdAndDelete(_id, req.body);
+    
+    if (!req.params.id) {
+      return res.status(404).send();
+    } else {
+      res.send({ success: true, deleteuser, message: "delete user succesful" });
+    }
+  } catch (e) {
+    return res.status(500).send(e);
+  }
+});
+
+//  for search pagination and get the user data 
+  router.get("/user/userdata", async (req, res) => {
+    let page = parseInt(req.query.page);
+    let limit = parseInt(req.query.limit);
+    let search = req.query.search;
+    let sortfield = req.query.sortfield || 'username';
+    let sortorder = req.query.sortorder === "desc" ? -1 : 1;
+    if (!limit || isNaN(limit)) {
+      limit = 5;
+    }
+    if (!page || isNaN(page)) {
+      page = 1;
+    }
+    
+    let skip = (page - 1) * limit;
+    let totalPage;
+    
+    try {
+      let query = {};
+      
+      if (search) {
+        query = {
+          $or: [
+            { username: { $regex: search, $options: "i" } },
+            { useremail: { $regex: search, $options: "i" } },
+            { userphonenumber: { $regex: search, $options: "i" } },
+          ],
+      };
+    }
+
+    // Retrieve the paginated data using the limit, skip, and query values
+    let pricingQuery = userModel.find(query);
+    
+    // If sortField is provided, add sorting to the query
+    if (sortfield) {
+      pricingQuery = pricingQuery.sort({ [sortfield]: sortorder });
+    }
+    
+    // Calculate the total count of documents in the collection
+    const count = await userModel.countDocuments(query);
+    
+    // Calculate the total number of pages based on the count and limit
+    totalPage = Math.ceil(count / limit);
+    
+    // If page is greater than totalPage, set it to the last page
+    if (page > totalPage) {
+      page = totalPage;
+      skip = (page - 1) * limit;
+    }
+    
+    // Retrieve the paginated data using the updated skip value
+    pricingQuery = pricingQuery.skip(skip).limit(limit);
+    
+    const pricing = await pricingQuery.exec();
+    
+    if (!pricing) {
+      return res.send("No pricing found.");
+    }
+    
+    res.send({ pricing, count, totalPage });
+    // sendMail();
+  } catch (error) {
+    res.status(500).send(error);
+    console.log(error);
+  }
+});
+
+
+module.exports = router;
+
+
 // router.patch('/user/:id', upload.single("image") , async(req,res)=>{
-//     const _id = req.params.id;
-//     try{
-//       const updateUser = await userModel.findByIdAndUpdate(_id, {
-//         username: req.body.username,
-//         useremail: req.body.useremail,
-//         userphonenumber: req.body.userphonenumber,
-//         usercountrycode: req.body.usercountrycode,
-//     },{new: true}); 
-  
-//     if (req.file) {
-//       updateUser.image= req.file.originalname
-//     }
-//     await updateUser.save();
-//       // console.log(updateUser);
-//       res.send({updateUser , message : " Update User Successful"}); 
-//     }
-//     catch(error){ 
-//       console.log(error);
-//       if (error.keyPattern) {
-//         if (error.keyPattern.useremail) {
-//             return res.status(500).send({
-//                 success: false,
-//                 message: "email already exist!!!!! "
-//             })
-//         } else {
-//             return res.status(500).send({
-//                 success: false,
+  //     const _id = req.params.id;
+  //     try{
+    //       const updateUser = await userModel.findByIdAndUpdate(_id, {
+      //         username: req.body.username,
+      //         useremail: req.body.useremail,
+      //         userphonenumber: req.body.userphonenumber,
+      //         usercountrycode: req.body.usercountrycode,
+      //     },{new: true}); 
+      
+      //     if (req.file) {
+        //       updateUser.image= req.file.originalname
+        //     }
+        //     await updateUser.save();
+        //       // console.log(updateUser);
+        //       res.send({updateUser , message : " Update User Successful"}); 
+        //     }
+        //     catch(error){ 
+          //       console.log(error);
+          //       if (error.keyPattern) {
+            //         if (error.keyPattern.useremail) {
+              //             return res.status(500).send({
+                //                 success: false,
+                //                 message: "email already exist!!!!! "
+                //             })
+                //         } else {
+                  //             return res.status(500).send({
+                    //                 success: false,
 //                 message: "phone number already exist!!!!!"
 //             })
 //         }
 //     }
-  
+
 //       return res.status(500).send({success: false , error , message: " please add user "})
 //     }
 //   });
 
-//   delete user 
-router.delete("/user/:id", async (req, res) => {
-    try {
-      const _id = req.params.id;
-      const deleteuser = await userModel.findByIdAndDelete(_id, req.body);
-  
-      if (!req.params.id) {
-        return res.status(404).send();
-      } else {
-        res.send({success:true,deleteuser, message:"delete user succesful"});
-      }
-    } catch (e) {
-      return res.status(500).send(e);
-    }
-  });
-
-// pagination 
+//pagination 
 // router.get("/user/userdata", async (req, res) => {
-//   let page = parseInt(req.query.page);
-//   let limit = parseInt(req.query.limit);
-
-//   // If limit is not provided or not a valid number, set it to a default value of 1
-//   if (!limit || isNaN(limit)) {
-//     limit = 1;
-//   }
-
+  //   let page = parseInt(req.query.page);
+  //   let limit = parseInt(req.query.limit);
+  
+  //   // If limit is not provided or not a valid number, set it to a default value of 1
+  //   if (!limit || isNaN(limit)) {
+    //     limit = 1;
+    //   }
+    
 //   // If page is not provided or not a valid number, set it to a default value of 1
 //   if (!page || isNaN(page)) {
-//     page = 1;
+  //     page = 1;
 //   }
 
 //   let skip = (page - 1) * limit;
@@ -189,9 +518,9 @@ router.delete("/user/:id", async (req, res) => {
 
 //   try {
 //     // Retrieve the paginated data using the limit and skip values
-    
+
 //     const pricing = await userModel.find().skip(skip).limit(limit)
-  
+
 //     // Retrieve the total count of documents in the collection
 //     const count = await userModel.countDocuments();
 
@@ -199,120 +528,62 @@ router.delete("/user/:id", async (req, res) => {
 //     totalPage = Math.ceil(count / limit);
 
 //     if (!pricing) {
-//       return res.send("No pricing found.");
-//     }
-
-//     res.send({ pricing, count, totalPage });
-//   } catch (error) {
-//     res.status(500).send(error);
-//   }
-// });
-
-//  search 
+  //       return res.send("No pricing found.");
+  //     }
+  
+  //     res.send({ pricing, count, totalPage });
+  //   } catch (error) {
+    //     res.status(500).send(error);
+    //   }
+    // });
+    
+    //  search 
+    
+    // router.get('/usersearch', async (req, res) => {
+      //   const searchTerm = req.query.q;
+      
+      //   if (!searchTerm) {
+        //     return res.status(400).json({ error: 'Search term is required' });
+        //   }
+        
+        //   try {
+          //     // Perform the search query using MongoDB's $regex operator
+          //     const results = await userModel.find({
+            //       username: { $regex: searchTerm, $options: 'i' },
+            //     });
+            
+            //     res.json(results);
+            //   } catch (error) {
+              //     res.status(500).json({ error: 'An error occurred' });
+              //   }
+              // }); 
 
 // router.get('/usersearch', async (req, res) => {
 //   const searchTerm = req.query.q;
 
 //   if (!searchTerm) {
-//     return res.status(400).json({ error: 'Search term is required' });
-//   }
-
-//   try {
-//     // Perform the search query using MongoDB's $regex operator
-//     const results = await userModel.find({
+  //     return res.status(400).json({ error: 'Search term is required' });
+  //   }
+  
+  //   try {
+    //     // Perform the search query using MongoDB's $regex operator
+    //     const results = await userModel.find({
 //       username: { $regex: searchTerm, $options: 'i' },
 //     });
 
 //     res.json(results);
 //   } catch (error) {
-//     res.status(500).json({ error: 'An error occurred' });
+  //     console.error(error);
+  //     res.status(500).json({ error: 'An error occurred' });
+  //   }
+  // });
+
+// get the data 
+// router.get("/user", async (req, res) => {
+//   try {
+//     const userdata = await userModel.find();
+//     res.send(userdata);
+//   } catch (error) {
+//     res.send(error);
 //   }
-// }); 
-router.get('/usersearch', async (req, res) => {
-  const searchTerm = req.query.q;
-
-  if (!searchTerm) {
-    return res.status(400).json({ error: 'Search term is required' });
-  }
-
-  try {
-    // Perform the search query using MongoDB's $regex operator
-    const results = await userModel.find({
-      username: { $regex: searchTerm, $options: 'i' },
-    });
-
-    res.json(results);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'An error occurred' });
-  }
-});
-
-
-
-router.get("/user/userdata", async (req, res) => {
-  let page = parseInt(req.query.page);
-  let limit = parseInt(req.query.limit);
-  let search = req.query.search;
-  let sortfield = req.query.sortfield || 'username'; 
-  let sortorder = req.query.sortorder === "desc" ? -1 : 1;
-  if (!limit || isNaN(limit)) {
-    limit = 5;
-  }
-  if (!page || isNaN(page)) {
-    page = 1;
-  }
-
-  let skip = (page - 1) * limit;
-  let totalPage;
-
-  try {
-    let query = {};
-
-    if (search) {
-      query = {
-        $or: [
-          { username: { $regex: search, $options: "i" } },
-          { useremail: { $regex: search, $options: "i" } },
-          { userphonenumber: { $regex: search, $options: "i" } },
-        ],
-      };
-    }
-
-    // Retrieve the paginated data using the limit, skip, and query values
-    let pricingQuery = userModel.find(query);
-
-    // If sortField is provided, add sorting to the query
-    if (sortfield) {
-      pricingQuery = pricingQuery.sort({ [sortfield]: sortorder });
-    }
-
-    // Calculate the total count of documents in the collection
-    const count = await userModel.countDocuments(query);
-
-    // Calculate the total number of pages based on the count and limit
-    totalPage = Math.ceil(count / limit);
-
-    // If page is greater than totalPage, set it to the last page
-    if (page > totalPage) {
-      page = totalPage;
-      skip = (page - 1) * limit;
-    }
-
-    // Retrieve the paginated data using the updated skip value
-    pricingQuery = pricingQuery.skip(skip).limit(limit);
-
-    const pricing = await pricingQuery.exec();
-
-    if (!pricing) {
-      return res.send("No pricing found.");
-    }
-
-    res.send({ pricing, count, totalPage });
-  } catch (error) {
-    res.status(500).send(error);
-    console.log(error);
-  }
-});
-
-module.exports = router;
+// })

@@ -1,4 +1,4 @@
-<div><button mat-raised-button  color="primary" *ngIf="ridehistory" (click)="downloadCsv(ridehistory)">Download CSV</button></div>
+
 
 <div class="flex-container">
   <div>
@@ -81,3 +81,6 @@
     <tr mat-row *matRowDef="let ride; columns: displayedColumns" (click)="openDialog(ride)"></tr>
   </table>
 </div>
+
+<div><button mat-raised-button  color="primary" *ngIf="ridehistory" (click)="downloadCsv(ridehistory)">Download CSV</button></div>
+

@@ -8,6 +8,7 @@ const fs = require('fs');
 const dotenv = require('dotenv');
 
 
+
 router.post("/setting", async (req, res) => {
     try {
         let settingdata;
@@ -52,7 +53,9 @@ router.patch('/setting' , async(req,res)=>{
     dotenv.config(); // Load the current .env file
         process.env.ACCOUNTSID = req.body.assountsid;
         process.env.AUTHTOKEN = req.body.authtoken;
-        const envData = `AUTHTOKEN=${process.env.AUTHTOKEN}\nACCOUNTSID=${process.env.ACCOUNTSID}`;
+        process.env.EMAILUSERNAME = req.body.emailusername;
+        process.env.EMAILPASSWORD = req.body.emailpassword;
+        const envData = `AUTHTOKEN=${process.env.AUTHTOKEN}\nACCOUNTSID=${process.env.ACCOUNTSID}\nEMAILUSERNAME=${process.env.EMAILUSERNAME}\nEMAILPASSWORD=${process.env.EMAILPASSWORD}`;
         
 
     fs.writeFileSync('.env', envData, 'utf8');

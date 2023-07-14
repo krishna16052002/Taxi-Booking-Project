@@ -1,8 +1,8 @@
 const express = require('express');
 require('dotenv').config();
-// const accountSid = process.env.ACCOUNTSID;
-// const authToken = process.env.AUTHTOKEN;
-// const client = require('twilio')(accountSid, authToken);
+const accountSid = process.env.ACCOUNTSID;
+const authToken = process.env.AUTHTOKEN;
+const client = require('twilio')(accountSid, authToken);
 const createrideModel = require("../models/createride");
 const driverModel = require("../models/driver");
 const settingModel = require("../models/setting");

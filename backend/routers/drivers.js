@@ -5,6 +5,28 @@ const multer = require("multer");
 const driverModel = require("../models/driver");
 const bodyparser = require("body-parser");
 router.use(bodyparser.json());
+const nodemailer = require("nodemailer");
+const sendMail = async (req, res) => {
+
+  const transporter = nodemailer.createTransport({
+    host: 'smtp.ethereal.email',
+    port: 587,
+    auth: {
+      user: process.env.EMAILUSERNAME,
+      pass: process.env.EMAILPASSWORD
+    }
+  });
+
+  let info = await transporter.sendMail({
+    from: 'info@ethereal.email', // sender address
+    to: "krishnahothi.elluminatiinc@gmail.com", // list of receivers
+    subject: "Driver Registration", // Subject line      
+    text: " Driver Registration is succesfullllllllllll", // plain text body
+  });
+
+  console.log("Message sent: %s", info.messageId);
+  // res.json(info);
+};
 
 const imageFileFilter = (req, file, cb) => {
   if (file.mimetype.startsWith("image")) {
@@ -49,6 +71,7 @@ router.post("/driver", upload.single("image"), async (req, res) => {
       driverdata,
       message: "add driver successfully ",
     });
+    sendMail()
   } catch (error) {
     console.log(error);
     if (error.keyPattern) {
