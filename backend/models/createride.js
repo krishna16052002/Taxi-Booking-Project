@@ -46,6 +46,9 @@ const createrideSchema = mongoose.Schema(
     //   trim: true,
     //   default: "0",
     // },
+    nearest :{
+      type:Boolean
+    }
   }
 );
 

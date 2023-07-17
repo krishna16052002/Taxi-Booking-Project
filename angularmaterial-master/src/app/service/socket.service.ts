@@ -34,7 +34,7 @@ export class SocketService {
   onDriverStatusChanged(driverstatuschanged: any): Observable<any> {
     return new Observable((observer) => {
       this.socket.on(driverstatuschanged, (data: any) => {
-        console.log(data);
+        // console.log(data);
         observer.next(data);
       });
     });
@@ -43,7 +43,7 @@ export class SocketService {
   // emit the driver vehicle data to the server
 
   emitchangedrivervehicletype(vehicledata: any) {
-    console.log(vehicledata);
+    // console.log(vehicledata);
 
     this.socket.emit('changevehicletype', vehicledata);
   }
@@ -53,7 +53,7 @@ export class SocketService {
   onchangedrivervehicletype(changevehicletype:any): Observable<any> {
     return new Observable((observer) => {
       this.socket.on(changevehicletype, (data: any) => {
-        console.log(data);
+        // console.log(data);
         observer.next(data);
       });
     });
@@ -63,14 +63,14 @@ export class SocketService {
   // emit the assign driver
 
   assigndriver(data: any) {
-    console.log(data);
+    // console.log(data);
     this.socket.emit('assigndriver', data);
   }
 
   assigndriverchange(assigndriver:any): Observable<any> {
     return new Observable((observer) => {
       this.socket.on(assigndriver, (data: any) => {
-        console.log(data);
+        // console.log(data);
         observer.next(data);
       });
     });
@@ -80,7 +80,7 @@ export class SocketService {
 
 
   emitridedata(data: any) {
-    console.log(data);
+    // console.log(data);
     this.socket.emit('runningrequest', data);
   }
 
@@ -89,7 +89,7 @@ export class SocketService {
    onrunningrequest(runningrequest:any):Observable<any>{
     return new Observable((observer) => {
       this.socket.on('runningrequest', (data) => {
-        console.log(data);
+        // console.log(data);
         observer.next(data);
       });
     });
@@ -97,7 +97,7 @@ export class SocketService {
 
 // emit the rejected ride data
 emitrejectedride(data: any) {
-  console.log(data);
+  // console.log(data);
   this.socket.emit('riderejected', data);
 }
 
@@ -116,7 +116,7 @@ onrejectedride(riderejected:any):Observable<any>{
 
  // emit the cancel ride data
 emitcancelride(data: any) {
-  console.log(data);
+  // console.log(data);
   this.socket.emit('cancelride', data);
 }
 
@@ -126,7 +126,7 @@ emitcancelride(data: any) {
 oncancelride(cancelride:any):Observable<any>{
   return new Observable((observer) => {
     this.socket.on(cancelride, (data: any) => {
-      console.log(data);
+      // console.log(data);
       observer.next(data);
     });
   });
@@ -135,7 +135,6 @@ oncancelride(cancelride:any):Observable<any>{
 
 //  emit the ridehistorydata
 emitridehistory(data: any) {
-  console.log(data);
   this.socket.emit('ridehistory', data);
 }
 
@@ -145,7 +144,21 @@ emitridehistory(data: any) {
 onridehistory(ridehistory:any):Observable<any>{
   return new Observable((observer) => {
     this.socket.on(ridehistory, (data: any) => {
-      console.log(data);
+      observer.next(data);
+    });
+  });
+ }
+
+//  emit assign nearest driver data
+emaitassignnearestdriverdata(eventData: any): void {
+  this.socket.emit('assignnearestdriverdata', eventData);
+}
+
+
+// on assign nearest driver data
+onassignnearestdriverdata(afterassignnearestdriverdata:any):Observable<any>{
+  return new Observable((observer) => {
+    this.socket.on(afterassignnearestdriverdata, (data: any) => {
       observer.next(data);
     });
   });

@@ -27,6 +27,7 @@ export class AssigndriverComponent {
   eventData: any;
   driverdata: any;
   alldata: any;
+  ride_id: any;
 
   constructor(
     public dialogRef: MatDialogRef<AssigndriverComponent>,
@@ -39,9 +40,12 @@ export class AssigndriverComponent {
     // this.notiservice.requestNotificationPermission();
     this.changeassigndriver();
     this.afterrideidnull();
+    this.afterassignnearestdriver();
     // console.log(this.data);
     this.ridedata = this.data.assigndriver;
-    // console.log(this.ridedata);
+    console.log(this.ridedata);
+    console.log(this.ridedata._id);
+    this.ride_id =this.ridedata._id
     this.entries = Object.entries(this.ridedata);
     this.cityData = this.ridedata.citydata;
     // console.log(this.ridedata.city_id);
@@ -125,6 +129,28 @@ export class AssigndriverComponent {
 
     this.dialogRef.close(this.alldata);
   }
+
+  assignnearestdriver(){
+     const assignnearestdata= {
+      _id : this.ride_id,
+      cityId: this.ridedata.city_id,
+      assignService: this.ridedata.vehicle_id,
+    }
+    this._socketservice.emaitassignnearestdriverdata(assignnearestdata);
+  }
+
+//  when assignnearestdriver on
+afterassignnearestdriver(){
+  this._socketservice.onassignnearestdriverdata('afterassignnearestdriverdata').subscribe((data: any) => {
+    this._socketservice.socket.emit('assigndriverdata', this.eventData);
+
+    this._socketservice.onassigndriverdata().subscribe((response) => {
+      this.drivers = response.driver;
+
+    });
+  });
+ }
+
 
 // when the driver reject the ride then at a time that show a data in driver list in confirmridedata
   afterrideidnull(){
