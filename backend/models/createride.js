@@ -1,4 +1,15 @@
 const mongoose = require("mongoose");
+const status = {
+  pending: 0,
+  assigning: 1,
+  rejected: 2,
+  accepted: 3,
+  arrived: 4,
+  picked: 5,
+  started: 6,
+  completed: 7,
+  cancel : 8 
+};
 
 const createrideSchema = mongoose.Schema(
   {
@@ -34,21 +45,15 @@ const createrideSchema = mongoose.Schema(
     estimatefare: {},
     assigned:{ type:String, default:"pending"},
     created:{type:String,default:Date.now()},
-    // nearest: {
-    //   type: String,
-    //   validate: {
-    //     validator: function (status) {
-    //       const statusRegex = /^[0-1]$/;
-    //       return statusRegex.test(status);
-    //     },
-    //     message: "Invalid status code enter 0 or 1",
-    //   },
-    //   trim: true,
-    //   default: "0",
-    // },
     nearest :{
       type:Boolean
-    }
+    },
+    assigndriverarray : { type:Array  , unique : true },
+    status: {
+      type: Number,
+      enum: [0, 1, 2, 3, 4, 5, 6, 7 , 8],
+      default: 0,
+    },
   }
 );
 

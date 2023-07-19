@@ -35,8 +35,18 @@
     <ng-container matColumnDef="action">
       <th mat-header-cell *matHeaderCellDef>Action</th>
       <td mat-cell *matCellDef="let ride">
-        <button mat-raised-button color="primary" style="margin-bottom: 10px;">
-       Accept
+        <button mat-raised-button color="primary" style="margin-bottom: 10px;" (click)="acceptride(ride)" *ngIf="status !== 'accepted'">
+          Accept
+        </button>
+
+        <!-- "Arrived" button -->
+        <button mat-raised-button color="primary" style="margin-bottom: 10px;" (click)="arrived()" *ngIf="status === 'accepted' && !showPickedButton">
+          Arrived
+        </button>
+
+        <!-- "Picked" button (initially hidden) -->
+        <button mat-raised-button color="primary" style="margin-bottom: 10px;" (click)=" picked() ; showPickedButton = true" *ngIf="status === 'accepted' && showPickedButton">
+          Picked
         </button>
 
         <button mat-raised-button color="warn" (click)="rejectride(ride)">

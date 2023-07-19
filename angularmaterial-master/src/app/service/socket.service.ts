@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, observable } from 'rxjs';
 import { Socket, io } from 'socket.io-client';
 
 @Injectable({
@@ -50,7 +50,7 @@ export class SocketService {
 
   // Listen for the 'changevehicletype' event from the server
 
-  onchangedrivervehicletype(changevehicletype:any): Observable<any> {
+  onchangedrivervehicletype(changevehicletype: any): Observable<any> {
     return new Observable((observer) => {
       this.socket.on(changevehicletype, (data: any) => {
         // console.log(data);
@@ -59,15 +59,14 @@ export class SocketService {
     });
   }
 
-
   // emit the assign driver
 
   assigndriver(data: any) {
-    // console.log(data);
+    console.log(data);
     this.socket.emit('assigndriver', data);
   }
 
-  assigndriverchange(assigndriver:any): Observable<any> {
+  assigndriverchange(assigndriver: any): Observable<any> {
     return new Observable((observer) => {
       this.socket.on(assigndriver, (data: any) => {
         // console.log(data);
@@ -78,7 +77,6 @@ export class SocketService {
 
   // emit the data
 
-
   emitridedata(data: any) {
     // console.log(data);
     this.socket.emit('runningrequest', data);
@@ -86,84 +84,111 @@ export class SocketService {
 
   // running requst data
 
-   onrunningrequest(runningrequest:any):Observable<any>{
+  onrunningrequest(runningrequest: any): Observable<any> {
     return new Observable((observer) => {
       this.socket.on('runningrequest', (data) => {
         // console.log(data);
         observer.next(data);
       });
     });
-   }
+  }
 
-// emit the rejected ride data
-emitrejectedride(data: any) {
-  // console.log(data);
-  this.socket.emit('riderejected', data);
-}
+  // emit the rejected ride data
+  emitrejectedride(data: any) {
+    // console.log(data);
+    this.socket.emit('riderejected', data);
+  }
 
-//  after ride id null then on this data
+  //  after ride id null then on this data
 
-
-onrejectedride(riderejected:any):Observable<any>{
-  return new Observable((observer) => {
-    this.socket.on(riderejected, (data: any) => {
-      // console.log(data);
-      observer.next(data);
+  onrejectedride(riderejected: any): Observable<any> {
+    return new Observable((observer) => {
+      this.socket.on(riderejected, (data: any) => {
+        // console.log(data);
+        observer.next(data);
+      });
     });
-  });
- }
+  }
 
+  // emit the cancel ride data
+  emitcancelride(data: any) {
+    // console.log(data);
+    this.socket.emit('cancelride', data);
+  }
 
- // emit the cancel ride data
-emitcancelride(data: any) {
-  // console.log(data);
-  this.socket.emit('cancelride', data);
-}
+  //  after ride id null then on this data
 
-//  after ride id null then on this data
-
-
-oncancelride(cancelride:any):Observable<any>{
-  return new Observable((observer) => {
-    this.socket.on(cancelride, (data: any) => {
-      // console.log(data);
-      observer.next(data);
+  oncancelride(cancelride: any): Observable<any> {
+    return new Observable((observer) => {
+      this.socket.on(cancelride, (data: any) => {
+        // console.log(data);
+        observer.next(data);
+      });
     });
-  });
- }
+  }
 
+  //  emit the ridehistorydata
+  emitridehistory(data: any) {
+    this.socket.emit('ridehistory', data);
+  }
 
-//  emit the ridehistorydata
-emitridehistory(data: any) {
-  this.socket.emit('ridehistory', data);
-}
+  //  after ride id null then on this data
 
-//  after ride id null then on this data
-
-
-onridehistory(ridehistory:any):Observable<any>{
-  return new Observable((observer) => {
-    this.socket.on(ridehistory, (data: any) => {
-      observer.next(data);
+  onridehistory(ridehistory: any): Observable<any> {
+    return new Observable((observer) => {
+      this.socket.on(ridehistory, (data: any) => {
+        observer.next(data);
+      });
     });
-  });
- }
+  }
 
-//  emit assign nearest driver data
-emaitassignnearestdriverdata(eventData: any): void {
-  this.socket.emit('assignnearestdriverdata', eventData);
-}
+  //  emit assign nearest driver data
+  emaitassignnearestdriverdata(eventData: any): void {
+    this.socket.emit('assignnearestdriverdata', eventData);
+  }
 
-
-// on assign nearest driver data
-onassignnearestdriverdata(afterassignnearestdriverdata:any):Observable<any>{
-  return new Observable((observer) => {
-    this.socket.on(afterassignnearestdriverdata, (data: any) => {
-      observer.next(data);
+  // on assign nearest driver data
+  onassignnearestdriverdata(
+    afterassignnearestdriverdata: any
+  ): Observable<any> {
+    return new Observable((observer) => {
+      this.socket.on(afterassignnearestdriverdata, (data: any) => {
+        observer.next(data);
+      });
     });
-  });
- }
+  }
 
+  afterselectdriver(afterselectdriver: any): Observable<any> {
+    return new Observable((observer) => {
+      this.socket.on(afterselectdriver, (data: any) => {
+        observer.next(data);
+        // console.log(data);
+      });
+    });
+  }
+
+  afternulldriverdata(afternulldriverdata: any): Observable<any> {
+    return new Observable((observer) => {
+      this.socket.on(afternulldriverdata, (data: any) => {
+        observer.next(data);
+        // console.log(data);
+      });
+    });
+  }
+
+  // afternullridedata(afternullridedata:any):Observable<any>{
+  //   return new Observable((observer)=>{
+  //     this.socket.on(afternullridedata ,(data:any) =>{
+  //       observer.next(data);
+  //     })
+  //   })
+  // }
+
+  emitaccepted(accepted:any ) : void {
+    // console.log(accepted);
+
+    this.socket.emit('accepted', accepted);
+  }
 
 
 }

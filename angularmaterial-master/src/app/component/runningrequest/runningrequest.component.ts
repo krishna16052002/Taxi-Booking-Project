@@ -22,6 +22,8 @@ export class RunningrequestComponent {
   runningrequestdata: any;
   ride_id: any;
   driver_id: any;
+  status: string = 'assignning'; // Set the initial status here (for example, 'pending')
+  showPickedButton: boolean = false;
 
   constructor(private _socketservice : SocketService){}
 
@@ -29,7 +31,16 @@ export class RunningrequestComponent {
     this.afterrideidnull();
     this.runningridedata();
     this.assigndriver();
+    this.onassignnearestdriverdata();
+    this.afterselectdriver();
+    this.afternulldriverdata();
+    // this.afternullridedata();
     this._socketservice.emitridedata(this.ridedata)
+    const storedStatus = localStorage.getItem('rideStatus');
+    if (storedStatus) {
+      this.status = storedStatus;
+    }
+
      }
 
    runningridedata(){
@@ -74,6 +85,67 @@ export class RunningrequestComponent {
     });
    }
 
+
+  //  assignnearestdriver
+  onassignnearestdriverdata(){
+    this._socketservice.onassignnearestdriverdata('afterassignnearestdriverdata').subscribe((data: any) => {
+      this._socketservice.emitridedata(this.ridedata);
+      this._socketservice.onrunningrequest('runningrequest').subscribe((data: any) => {
+        this.ridedata = data;
+        // console.log(this.ridedata);
+        this.runningrequestdata = this.ridedata.runningrequestdata
+        // console.log(this.runningrequestdata);
+      });
+    });
+  }
+
+  afterselectdriver(){
+    this._socketservice.afterselectdriver('afterselectdriver').subscribe((data: any) => {
+      this._socketservice.emitridedata(this.ridedata);
+      this._socketservice.onrunningrequest('runningrequest').subscribe((data: any) => {
+        this.ridedata = data;
+        this.runningrequestdata = this.ridedata.runningrequestdata
+      });
+    });
+  }
+
+  afternulldriverdata(){
+    this._socketservice.afternulldriverdata('afternulldriverdata').subscribe((data: any) => {
+      this._socketservice.emitridedata(this.ridedata);
+      this._socketservice.onrunningrequest('runningrequest').subscribe((data: any) => {
+        this.ridedata = data;
+        this.runningrequestdata = this.ridedata.runningrequestdata
+      });
+    });
+  }
+
+  // afternullridedata(){
+  //   this._socketservice.afternullridedata('afternullridedata').subscribe((data: any) => {
+  //     this._socketservice.emitridedata(this.ridedata);
+  //     this._socketservice.onrunningrequest('runningrequest').subscribe((data: any) => {
+  //       this.ridedata = data;
+  //       this.runningrequestdata = this.ridedata.runningrequestdata
+  //     });
+  //   });
+  // }
+
+  acceptride(ride :any ){
+    // console.log(ride);
+    this._socketservice.emitaccepted({ride_id : ride._id , driver_id : ride.driver_id})
+    this.status = 'accepted';
+    localStorage.setItem('rideStatus', this.status);
+
+  }
+  arrived() {
+    console.log('Arrived button clicked!');
+    this.status = 'arrived';
+    localStorage.setItem('rideStatus', this.status);
+    this.showPickedButton = true;
+  }
+    
+  picked(){
+
+  }
 
 }
 

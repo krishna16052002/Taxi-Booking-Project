@@ -115,7 +115,8 @@ router.get("/createride", async (req, res) => {
       },
       {
         $match: {
-          assigned:"pending"
+          assigned:"pending",
+          status : 0
         }
       }
     ]) 
