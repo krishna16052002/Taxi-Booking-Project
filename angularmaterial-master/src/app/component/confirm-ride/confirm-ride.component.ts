@@ -87,8 +87,8 @@ export class ConfirmRideComponent {
       // console.log(this.assignServices);
     });
   }
-  openDialogassign(assigndriver: any) {
-    // console.log(assigndriver);
+    openDialogassign(assigndriver: any) {
+    console.log(assigndriver);
     // console.log(assigndriver._id);
     // this._id = val._id
 

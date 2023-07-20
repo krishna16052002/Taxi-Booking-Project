@@ -12,7 +12,7 @@ const status = {
 };
 
 const createrideSchema = mongoose.Schema(
-  {
+  { 
     paymentoption: {},
     ridetime: {},
     date: {},

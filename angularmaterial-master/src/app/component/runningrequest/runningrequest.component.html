@@ -1,5 +1,5 @@
 <div class="m-5">
-  <table mat-table [dataSource]="runningrequestdata" class="mat-elevation-z8 demo-table  " >
+  <table mat-table [dataSource]="runningrequestdata" class="mat-elevation-z8 demo-table">
     <ng-container matColumnDef="requestId">
       <th mat-header-cell *matHeaderCellDef>REQUEST ID</th>
       <td mat-cell *matCellDef="let ride">{{ ride._id }}</td>
@@ -26,7 +26,9 @@
     </ng-container>
     <ng-container matColumnDef="service">
       <th mat-header-cell *matHeaderCellDef>SERVICE</th>
-      <td mat-cell *matCellDef="let ride">{{ ride.vehicledata.vehiclename }}</td>
+      <td mat-cell *matCellDef="let ride">
+        {{ ride.vehicledata.vehiclename }}
+      </td>
     </ng-container>
     <ng-container matColumnDef="driver">
       <th mat-header-cell *matHeaderCellDef>DRIVER</th>
@@ -35,26 +37,37 @@
     <ng-container matColumnDef="action">
       <th mat-header-cell *matHeaderCellDef>Action</th>
       <td mat-cell *matCellDef="let ride">
-        <button mat-raised-button color="primary" style="margin-bottom: 10px;" (click)="acceptride(ride)" *ngIf="status !== 'accepted'">
+        <button mat-raised-button color="primary" style="margin-bottom: 10px" (click)="acceptride(ride)"
+          *ngIf="ride.status === 1">
           Accept
         </button>
 
-        <!-- "Arrived" button -->
-        <button mat-raised-button color="primary" style="margin-bottom: 10px;" (click)="arrived()" *ngIf="status === 'accepted' && !showPickedButton">
+        <button mat-raised-button color="primary" style="margin-bottom: 10px" (click)="arrived(ride)"
+          *ngIf="ride.status === 3">
           Arrived
         </button>
 
-        <!-- "Picked" button (initially hidden) -->
-        <button mat-raised-button color="primary" style="margin-bottom: 10px;" (click)=" picked() ; showPickedButton = true" *ngIf="status === 'accepted' && showPickedButton">
+        <button mat-raised-button color="primary" style="margin-bottom: 10px" (click)="picked(ride)"
+          *ngIf="ride.status === 4">
           Picked
+        </button>
+
+        <button mat-raised-button color="primary" style="margin-bottom: 10px" (click)="started(ride)"
+          *ngIf="ride.status === 5">
+          Started
+        </button>
+
+        <button mat-raised-button color="primary" style="margin-bottom: 10px" (click)="completed(ride)" ; (click)="openDialog(ride)"
+          *ngIf="ride.status === 6">
+          Completed
         </button>
 
         <button mat-raised-button color="warn" (click)="rejectride(ride)">
           Reject
         </button>
-        </td>
+      </td>
     </ng-container>
     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
   </table>
 </div>

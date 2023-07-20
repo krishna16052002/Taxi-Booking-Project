@@ -13,6 +13,8 @@ export class SocketService {
 
   // emit  cityid and serviceid for the check  $match condition
   emaitassigndriverdata(eventData: any): void {
+    console.log(eventData);
+
     this.socket.emit('assigndriverdata', eventData);
   }
   //  assign driverdata in confirmride ,
@@ -184,11 +186,36 @@ export class SocketService {
   //   })
   // }
 
-  emitaccepted(accepted:any ) : void {
-    // console.log(accepted);
+  updateride(updateride:any):Observable<any>{
+    return new Observable((observer)=>{
+      this.socket.on(updateride ,(data:any) =>{
+        observer.next(data);
+      })
+    })
+  }
 
+  emitaccepted(accepted:any ) : void {
     this.socket.emit('accepted', accepted);
   }
+
+  arrived(arrived:any):void {
+    console.log(arrived);
+
+    this.socket.emit('arrived' , arrived);
+  }
+
+  picked(picked:any):void {
+    this.socket.emit('picked', picked);
+  }
+
+  started(started:any){
+    this.socket.emit('started', started);
+  }
+
+  Completed(Completed:any){
+    this.socket.emit('Completed',Completed);
+  }
+
 
 
 }

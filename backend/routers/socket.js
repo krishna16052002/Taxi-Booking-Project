@@ -7,9 +7,9 @@ const driverModel = require("../models/driver");
 const { mongoose } = require('mongoose')
 const createrideModel = require("../models/createride");
 const { from } = require("nodemailer/lib/mime-node/le-windows");
-const CronJob = require('cron').CronJob;
+// const CronJob = require('cron').CronJob;
 const cron = require('node-cron');
-const nearestdriver = false;
+
 
 async function initializeSocket(server) {
   const io = socketIo(server, { cors: { origin: ['http://localhost:4200'] } });
@@ -135,7 +135,7 @@ async function initializeSocket(server) {
       }
     })
 
-// crone 
+    // crone 
 
     const job = cron.schedule('* * * * * *', async () => {
 
@@ -153,14 +153,14 @@ async function initializeSocket(server) {
             // console.log(currentTime.getTime());
             const elapsedTimeInSeconds = Math.floor((currentTime.getTime() - data.created) / 1000);
             console.log(elapsedTimeInSeconds);
-            if (elapsedTimeInSeconds >= 10) {
+            if (elapsedTimeInSeconds >= 20) {
               const result1 = await driverModel.findByIdAndUpdate(data.driver_id, { assign: "0" }, { new: true });
               io.emit('riderejected', result1);
 
 
               const result = await createrideModel.findByIdAndUpdate(data._id, { driver_id: null, assigned: "pending" , status : 0 }, { new: true });
               io.emit('riderejected', result);
-              console.log('Cron job ended.');
+              // console.log('Cron job ended.');
 
             } else {
               // console.log("hello");
@@ -175,8 +175,7 @@ async function initializeSocket(server) {
           // console.log(currentTime.getTime());
           const elapsedTimeInSeconds = Math.floor((currentTime.getTime() - data.created) / 1000);
           // console.log(elapsedTimeInSeconds);
-          if (elapsedTimeInSeconds >= 10) {
-            // console.log("hello");
+          if (elapsedTimeInSeconds >= 20) {
             const city_id = new mongoose.Types.ObjectId(data.city_id);
             const vehicle_id = new mongoose.Types.ObjectId(data.vehicle_id);
             const assigneddrivers = [...new Set(data.assigndriverarray)];
@@ -294,11 +293,9 @@ async function initializeSocket(server) {
 
         const driver = await driverModel.findByIdAndUpdate(firstdriver._id, { assign: "1" }, { new: true });
         await driver.save();
-        // // console.log(driver);
+        // console.log(driver);
         const ride = await createrideModel.findByIdAndUpdate(data._id, { driver_id: firstdriver._id, assigned: "assigning", status : 1  ,  nearest: true, assigndriverarray: firstdriver._id, created: Date.now() }, { new: true })
         await ride.save()
-
-
         // Emit the 'assigndriverdatadata' event with the driver data to the client
         io.emit("afterassignnearestdriverdata", { driverdata });
       } catch (error) {
@@ -313,7 +310,7 @@ async function initializeSocket(server) {
           {
             $match: {
               assigned: {$in : ["assigning" , "accepted" , "arrived", "picked", "started" ]},
-              status : {$in : [0 , 3 , 4 , 5 , 6 ]}
+              status : {$in : [1 , 3 , 4 , 5 , 6 ]}
             
             },
           },
@@ -365,7 +362,7 @@ async function initializeSocket(server) {
 
         const runningrequestdata = await runningrequest.exec();
 
-        // console.log(runningrequestdata);
+        console.log(runningrequestdata);
 
         // Emit the 'runningrequest' event with the driver data to the client
         io.emit("runningrequest", { runningrequestdata });
@@ -412,74 +409,76 @@ async function initializeSocket(server) {
     })
 
     // ride accepted 
-    // socket.on('accepted', async (data) => {
-    //   const ride_id = data.ride_id;
-    //   const driver_id = data.driver_id;
-    //   try {
-    //     const driver = await driverModel.findByIdAndUpdate(driver_id, { assign: "1" }, { new: true });
-    //     await driver.save();
-    //     // console.log(driver);
-    //     const ride = await createrideModel.findByIdAndUpdate(ride_id, { driver_id: driver_id, assigned: "accepted" , status : 3}, { new: true })
-    //     await ride.save()
-    //     io.emit('afteraccepted', driver, ride);
-    //   } catch (error) {
-    //     console.log(error);
-    //   }
-    // })
+    socket.on('accepted', async (data) => {
+      const ride_id = data.ride_id;
+      const driver_id = data.driver_id;
+      try {
+        const driver = await driverModel.findByIdAndUpdate(driver_id, { assign: "1" }, { new: true });
+        await driver.save();
+        // console.log(driver);
+        const ride = await createrideModel.findByIdAndUpdate(ride_id, { driver_id: driver_id, assigned: "accepted" , status : 3}, { new: true })
+        await ride.save()
+        io.emit('updateride', driver, ride);
+      } catch (error) {
+        console.log(error);
+      }
+    })
 
-    // // ride arrived
-    // socket.on('arrived', async (data) => {
-    //   const ride_id = data.ride_id;
-    //   const driver_id = data.driver_id;
-    //   try {
-    //     const ride = await createrideModel.findByIdAndUpdate(ride_id, { assigned: "arrived" , status : 4 }, { new: true })
-    //     await ride.save()
-    //     io.emit('afterarrived', ride);
-    //   } catch (error) {
-    //     console.log(error);
-    //   }
-    // })
+    // ride arrived
+    socket.on('arrived', async (data) => {
+      const ride_id = data.ride_id;
+      const driver_id = data.driver_id;
+      console.log(data);
+      try {
+        const ride = await createrideModel.findByIdAndUpdate(ride_id, { assigned: "arrived" , status : 4 }, { new: true })
+        await ride.save()
+        io.emit('updateride', ride);
+      } catch (error) {
+        console.log(error);
+      }
+    })
 
-    // // ride picked 
-    // socket.on('picked', async (data) => {
-    //   const ride_id = data.ride_id;
-    //   try {
-    //     const ride = await createrideModel.findByIdAndUpdate(ride_id, { assigned: "picked" , status : 5}, { new: true })
-    //     await ride.save()
-    //     io.emit('afterarrived', ride);
-    //   } catch (error) {
-    //     console.log(error);
-    //   }
-    // })
+    // ride picked 
+    socket.on('picked', async (data) => {
+      const ride_id = data.ride_id;
+      try {
+        const ride = await createrideModel.findByIdAndUpdate(ride_id, { assigned: "picked" , status : 5}, { new: true })
+        await ride.save()
+        io.emit('updateride', ride);
+      } catch (error) {
+        console.log(error);
+      }
+    })
 
-    // // ride started 
-    // socket.on('started', async (data) => {
-    //   const ride_id = data.ride_id;
-    //   try {
-    //     const ride = await createrideModel.findByIdAndUpdate(ride_id, { assigned: "started" , status : 6 }, { new: true })
-    //     await ride.save()
-    //     io.emit('afterstarted', ride);
-    //   } catch (error) {
-    //     console.log(error);
-    //   }
-    // })
+    // ride started 
+    socket.on('started', async (data) => {
+      const ride_id = data.ride_id;
+      try {
+        const ride = await createrideModel.findByIdAndUpdate(ride_id, { assigned: "started" , status : 6 }, { new: true })
+        await ride.save()
+        io.emit('updateride', ride);
+      } catch (error) {
+        console.log(error);
+      }
+    })
 
-    // // ride complete 
+    // ride complete 
 
-    // socket.on('Completed', async (data) => {
-    //   const ride_id = data.ride_id;
-    //   const driver_id = data.driver_id;
-    //   try {
-    //     const driver = await driverModel.findByIdAndUpdate(driver_id, { assign: "0" }, { new: true });
-    //     await driver.save();
-    //     // console.log(driver);
-    //     const ride = await createrideModel.findByIdAndUpdate(ride_id, { driver_id: null , assigned: "Completed" , status : 7 }, { new: true })
-    //     await ride.save()
-    //     io.emit('afteraccepted', driver, ride);
-    //   } catch (error) {
-    //     console.log(error);
-    //   }
-    // })
+    socket.on('Completed', async (data) => {
+      const ride_id = data.ride_id;
+      const driver_id = data.driver_id;
+      console.log(data);
+      try {
+        const driver = await driverModel.findByIdAndUpdate(driver_id, { assign: "0" }, { new: true });
+        await driver.save();
+        // console.log(driver);
+        const ride = await createrideModel.findByIdAndUpdate(ride_id, { driver_id: driver_id , assigned: "completed" , status : 7 }, { new: true })
+        await ride.save()
+        io.emit('updateride', driver, ride);
+      } catch (error) {
+        console.log(error);
+      }
+    })
 
 
     socket.on('ridehistory', async (data) => {

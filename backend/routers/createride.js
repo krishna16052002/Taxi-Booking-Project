@@ -115,8 +115,8 @@ router.get("/createride", async (req, res) => {
       },
       {
         $match: {
-          assigned:"pending",
-          status : 0
+          assigned: {$in : [ "pending" , "rejected"]},
+          status : {$in :[0 , 2]},
         }
       }
     ]) 

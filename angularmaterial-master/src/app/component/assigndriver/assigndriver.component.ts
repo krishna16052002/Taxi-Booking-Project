@@ -83,11 +83,7 @@ export class AssigndriverComponent {
 
     this._socketservice.onassigndriverdata().subscribe((response) => {
       this.drivers = response.driver;
-      // if(this.drivers == ){
-        // this.notiservice.requestNotificationPermission();
-        // this.notiservice.sendNotification('Hello, world!');
-      // }
-      // console.log(this.drivers);
+      console.log(this.drivers);
     });
   }
 
@@ -136,6 +132,8 @@ export class AssigndriverComponent {
       cityId: this.ridedata.city_id,
       assignService: this.ridedata.vehicle_id,
     }
+    console.log(assignnearestdata);
+
     this._socketservice.emaitassignnearestdriverdata(assignnearestdata);
   }
 
