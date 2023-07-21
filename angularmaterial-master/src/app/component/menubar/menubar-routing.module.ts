@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { MenubarComponent } from './menubar.component';
+import { InputComponent } from 'src/app/input/input.component';
 
 const routes: Routes = [
   { path: '', component: MenubarComponent
@@ -31,8 +32,11 @@ const routes: Routes = [
   { path: 'runningrequest', loadChildren: () => import('../runningrequest/runningrequest.module').then(m => m.RunningrequestModule) },
 
   { path: 'ridehistory', loadChildren: () => import('../ridehistory/ridehistory.module').then(m => m.RidehistoryModule) },
-]},
   { path: 'ridehistoryinfo', loadChildren: () => import('../ridehistoryinfo/ridehistoryinfo.module').then(m => m.RidehistoryinfoModule) },
+  { path: 'feedback', loadChildren: () => import('../feedback/feedback.module').then(m => m.FeedbackModule) },
+   { path:'input' , component: InputComponent},
+]},
+
   // { path: 'rideinfo', loadChildren: () => import('../rideinfo/rideinfo.module').then(m => m.RideinfoModule) },
 
   // {

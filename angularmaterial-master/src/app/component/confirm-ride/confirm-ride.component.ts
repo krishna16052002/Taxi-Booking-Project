@@ -26,6 +26,7 @@ export class ConfirmRideComponent {
     'pickupLocation',
     'destinationLocation',
     'service',
+    'driver',
     'action',
   ];
   driverdata: any;

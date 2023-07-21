@@ -1,0 +1,28 @@
+
+
+<h2 mat-dialog-title>Feedback Form</h2>
+<mat-dialog-content>
+  <div class="container mt-3">
+    <form [formGroup]="feedbackform">
+      <div class="form-group" >
+        <label for="name">Name:</label>
+        <input type="text" class="form-control" id="name" formControlName="name" readonly>
+      </div>
+      <br>
+      <div class="form-group">
+        <label for="email">Email:</label>
+        <input type="email" class="form-control" id="email" formControlName="email" readonly>
+      </div>
+      <br>
+      <div class="form-group">
+        <label for="feedback">Feedback:</label>
+        <textarea class="form-control" id="feedback" rows="5" formControlName="message" ></textarea>
+      </div>
+      <br>
+    </form>
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-raised-button color="warn" (click)="closeDialog()">Cancel</button>
+  <button mat-raised-button color="primary"mat-dialog-close (click)="feedback()" >Save</button>
+</mat-dialog-actions>

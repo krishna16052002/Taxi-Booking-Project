@@ -1,6 +1,9 @@
 import { Component } from '@angular/core';
 import { SocketService } from 'src/app/service/socket.service';
-
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { FeedbackComponent, ride } from '../feedback/feedback.component';
+import { CreaterideService } from 'src/app/service/createride.service';
+import { ToastrService } from 'ngx-toastr';
 @Component({
   selector: 'app-runningrequest',
   templateUrl: './runningrequest.component.html',
@@ -28,8 +31,9 @@ export class RunningrequestComponent {
   showPickedButton: boolean = false;
   showStartedButton: boolean = false;
   showCompletedButton: boolean = false;
+  feedback: any;
 
-  constructor(private _socketservice: SocketService) {}
+  constructor(private _socketservice: SocketService , public dialog: MatDialog, private _createrideService : CreaterideService , private toastr : ToastrService) {}
 
   ngOnInit() {
     this.showAceeptbutton = true;
@@ -204,10 +208,50 @@ export class RunningrequestComponent {
   }
 
   completed(ride: any) {
+    console.log(ride);
+
     this.showStartedButton = false;
     this._socketservice.Completed({
+      ridedata:ride,
       ride_id: ride._id,
       driver_id: ride.driver_id,
     });
   }
+
+  openDialog(val: any) {
+    console.log(val);
+    // console.log(val._id);
+    const id = val._id
+
+
+
+
+    const dialogData: ride = {
+      ride: val,
+    };
+
+    const dialogRef: MatDialogRef<FeedbackComponent> = this.dialog.open(
+      FeedbackComponent,
+      {
+        width: '600px',
+        data: dialogData,
+      }
+    );
+
+    dialogRef.afterClosed().subscribe((data: string) => {
+      console.log(data);
+      this._createrideService.updateride(data).subscribe({
+        next: (res: any) => {
+          // let updateuser = this.feedback.find((obj: any) => {
+          //   return obj._id === res._id;
+          // });
+          this.toastr.success("Feedback Send Succesfully")
+        },
+        error: (error) => {
+          console.log(error);
+        },
+      });
+    });
+  }
+
 }

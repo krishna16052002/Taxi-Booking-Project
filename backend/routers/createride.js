@@ -32,20 +32,20 @@ const router = express();
 
 
 
-// function sendmessage() {
+function sendmessage() {
 
   
-//   try {
-//     const message = client.messages.create({
-//       body: 'heyy',
-//       from: '+14175052749',
-//       to: '+919484881886'
-//     });
-//     console.log(message.sid, 'message');
-//   } catch (error) {
-//     console.log('Error sending message:', error);
-//   }
-// }
+  try {
+    const message = client.messages.create({
+      body: 'heyy',
+      from: '+14175052749',
+      to: '+919484881886'
+    });
+    console.log(message.sid, 'message');
+  } catch (error) {
+    console.log('Error sending message:', error);
+  }
+}
 
 
 router.post('/createride', async (req, res) => {
@@ -115,8 +115,8 @@ router.get("/createride", async (req, res) => {
       },
       {
         $match: {
-          assigned: {$in : [ "pending" , "rejected"]},
-          status : {$in :[0 , 2]},
+          assigned: {$in : [ "pending" , "rejected" , "assigning"]},
+          status : {$in :[0 , 2 , 1]},
         }
       }
     ]) 
@@ -129,45 +129,63 @@ router.get("/createride", async (req, res) => {
 })
 
 
-router.delete("/createride/:id", async (req, res) => {
-  try {
-    const _id = req.params.id;
-    const deleteDriver = await createrideModel.findByIdAndDelete(_id, req.body);
-
-    if (!req.params.id) {
-      return res.status(404).send();
-    } else {
-      res.send({
-        success: true,
-        deleteDriver,
-        message: "delete ride succesful",
-      });
-    }
-  } catch (e) {
-    return res.status(500).send(e);
-  }
-});
-
-
-router.patch('/createride/:id', async (req, res) => {
-  let id = req.params.id
+router.patch('/createride', async (req, res) => {
+  let id = req.body._id;
   console.log(req.body);
-  const { driverId } = req.body
+  const feedback = req.body.feedback
   try {
-    const driver = await driverModel.findByIdAndUpdate(driverId, { assign: "1" }, { new: true });
-    // if (!driver) {
-    //   return res.status(404).send({ message: 'Driver not found...' })
-    // }
-    await driver.save()
-    const ride = await createrideModel.findByIdAndUpdate(id, req.body, { new: true })
-    // console.log(ride);
+    const ride = await createrideModel.findByIdAndUpdate(id, {feedback:req.body.feedback} , { new: true })
+    console.log(ride);
     await ride.save()
     res.send(ride)
   } catch (error) {
     console.log(error);
-    res.status(500).send(error)
+    res.send(error)
   }
 })
+
+
+
+
+// router.delete("/createride/:id", async (req, res) => {
+//   try {
+//     const _id = req.params.id;
+//     const deleteDriver = await createrideModel.findByIdAndDelete(_id, req.body);
+
+//     if (!req.params.id) {
+//       return res.status(404).send();
+//     } else {
+//       res.send({
+//         success: true,
+//         deleteDriver,
+//         message: "delete ride succesful",
+//       });
+//     }
+//   } catch (e) {
+//     return res.status(500).send(e);
+//   }
+// });
+
+
+// router.patch('/createride/:id', async (req, res) => {
+//   let id = req.params.id
+//   console.log(req.body);
+//   const { driverId } = req.body
+//   try {
+//     const driver = await driverModel.findByIdAndUpdate(driverId, { assign: "1" }, { new: true });
+//     // if (!driver) {
+//     //   return res.status(404).send({ message: 'Driver not found...' })
+//     // }
+//     await driver.save()
+//     const ride = await createrideModel.findByIdAndUpdate(id, req.body, { new: true })
+//     // console.log(ride);
+//     await ride.save()
+//     res.send(ride)
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).send(error)
+//   }
+// })
 
 // // On cancelling ride to be confirm updating driver and ride info
 // createRideRouter.patch('/cancelRideToBeComfirmed', async (req, res) => {

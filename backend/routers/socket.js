@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express();
+require('dotenv').config();
 const bodyparser = require("body-parser");
 router.use(bodyparser.json());
 const socketIo = require('socket.io');
@@ -9,14 +10,17 @@ const createrideModel = require("../models/createride");
 const { from } = require("nodemailer/lib/mime-node/le-windows");
 // const CronJob = require('cron').CronJob;
 const cron = require('node-cron');
-
+const nodemailer = require("nodemailer");
+const settingModel = require("../models/setting");
+const accountSid = process.env.ACCOUNTSID;
+const authToken = process.env.AUTHTOKEN;
+const client = require('twilio')(accountSid, authToken);
 
 async function initializeSocket(server) {
   const io = socketIo(server, { cors: { origin: ['http://localhost:4200'] } });
 
   io.on('connection', (socket) => {
     console.log('Socket connected');
-
 
     // Assuming you have a socket instance available
 
@@ -139,8 +143,8 @@ async function initializeSocket(server) {
 
     const job = cron.schedule('* * * * * *', async () => {
 
-      const ride = await createrideModel.find({ assigned: "assigning", status : 1  ,  nearest: false });
-      const ridenearestdata = await createrideModel.find({ assigned: "assigning", status : 1  , nearest: true });
+      const ride = await createrideModel.find({ assigned: "assigning", status: 1, nearest: false });
+      const ridenearestdata = await createrideModel.find({ assigned: "assigning", status: 1, nearest: true });
       // console.log(ride , "rideeeeeeeeeeeeeeeeeeeeeeeeeeeee");
       // console.log(ridenearestdata , "nearesttttttttttttttttttttttt");
       if (ride.length > 0) {
@@ -158,7 +162,7 @@ async function initializeSocket(server) {
               io.emit('riderejected', result1);
 
 
-              const result = await createrideModel.findByIdAndUpdate(data._id, { driver_id: null, assigned: "pending" , status : 0 }, { new: true });
+              const result = await createrideModel.findByIdAndUpdate(data._id, { driver_id: null, assigned: "pending", status: 0 }, { new: true });
               io.emit('riderejected', result);
               // console.log('Cron job ended.');
 
@@ -231,7 +235,7 @@ async function initializeSocket(server) {
               //  }
 
               const driverdata = await driverModel.findByIdAndUpdate(data.driver_id, { assign: "0" }, { new: true });
-              const result = await createrideModel.findByIdAndUpdate(data._id, { created: Date.now(), assigndriverarray: [], nearest: false, assigned: "pending",  status : 0 ,  driver_id: null }, { new: true });
+              const result = await createrideModel.findByIdAndUpdate(data._id, { created: Date.now(), assigndriverarray: [], nearest: false, assigned: "pending", status: 0, driver_id: null }, { new: true });
               io.emit('afternulldriverdata', driverdata, result)
             }
           }
@@ -251,7 +255,7 @@ async function initializeSocket(server) {
         const driver = await driverModel.findByIdAndUpdate(driver_id, { assign: "1" }, { new: true });
         await driver.save();
         // console.log(driver);
-        const ride = await createrideModel.findByIdAndUpdate(_id, { driver_id: driver_id, assigned: "assigning", status : 1 ,  nearest: false, created: Date.now() }, { new: true })
+        const ride = await createrideModel.findByIdAndUpdate(_id, { driver_id: driver_id, assigned: "assigning", status: 1, nearest: false, created: Date.now() }, { new: true })
         await ride.save()
         // console.log(ride);
         io.emit('assigndriver', { driver });
@@ -294,7 +298,7 @@ async function initializeSocket(server) {
         const driver = await driverModel.findByIdAndUpdate(firstdriver._id, { assign: "1" }, { new: true });
         await driver.save();
         // console.log(driver);
-        const ride = await createrideModel.findByIdAndUpdate(data._id, { driver_id: firstdriver._id, assigned: "assigning", status : 1  ,  nearest: true, assigndriverarray: firstdriver._id, created: Date.now() }, { new: true })
+        const ride = await createrideModel.findByIdAndUpdate(data._id, { driver_id: firstdriver._id, assigned: "assigning", status: 1, nearest: true, assigndriverarray: firstdriver._id, created: Date.now() }, { new: true })
         await ride.save()
         // Emit the 'assigndriverdatadata' event with the driver data to the client
         io.emit("afterassignnearestdriverdata", { driverdata });
@@ -309,9 +313,9 @@ async function initializeSocket(server) {
         let runningrequest = createrideModel.aggregate([
           {
             $match: {
-              assigned: {$in : ["assigning" , "accepted" , "arrived", "picked", "started" ]},
-              status : {$in : [1 , 3 , 4 , 5 , 6 ]}
-            
+              assigned: { $in: ["assigning", "accepted", "arrived", "picked", "started"] },
+              status: { $in: [1, 3, 4, 5, 6] }
+
             },
           },
           {
@@ -374,15 +378,39 @@ async function initializeSocket(server) {
     //  when ride is rejected
 
     socket.on('riderejected', async (data) => {
-      // console.log(data);
+
       const ride_id = data.ride_id;
       const driver_id = data.driver_id;
       try {
+        const ridedata = await createrideModel.findById(ride_id);
         const driver = await driverModel.findByIdAndUpdate(driver_id, { assign: "0" }, { new: true });
         await driver.save();
+        if (ridedata.nearest == false) {
+          const ride = await createrideModel.findByIdAndUpdate(ride_id, { driver_id: null, assigned: "rejected", status: 2, assigndriverarray: [] }, { new: true })
+          await ride.save()
+        } else {
+
+          let alldrivers = await driverModel.aggregate([
+            {
+              $match: {
+                status: true,
+                city_id: ridedata.city_id,
+                assignService: ridedata.vehicle_id,
+                assign: "0",
+                _id: { $nin: ridedata.assigndriverarray }
+              },
+            },
+          ]);
+          if (alldrivers.length > 0) {
+            await createrideModel.findByIdAndUpdate(ride_id, { driver_id: alldrivers[0]._id, $addToSet: { assigndriverarray: alldrivers[0]._id } }, { new: true })
+          } else {
+            await driverModel.findByIdAndUpdate(driver_id, { assign: "0" }, { new: true });
+            await createrideModel.findByIdAndUpdate(ride_id, { driver_id: null, assigned: "rejected", status: 2, assigndriverarray: [] }, { new: true })
+          }
+
+        }
         // console.log(driver);
-        const ride = await createrideModel.findByIdAndUpdate(ride_id, { driver_id: null, assigned: "rejected" , status : 2 ,  assigndriverarray : [] }, { new: true })
-        await ride.save()
+
         // console.log(ride);
         io.emit('riderejected', { driver });
         io.emit('riderejected', { ride });
@@ -398,7 +426,7 @@ async function initializeSocket(server) {
       const ride_id = data.ride_id;
       // console.log(ride_id);
       try {
-        const ride = await createrideModel.findByIdAndUpdate(ride_id, { assigned: "cancel" , status : 8 }, { new: true })
+        const ride = await createrideModel.findByIdAndUpdate(ride_id, { assigned: "cancel", status: 8 }, { new: true })
         await ride.save();
         // console.log(ride);
         io.emit('cancelride', { ride });
@@ -416,9 +444,10 @@ async function initializeSocket(server) {
         const driver = await driverModel.findByIdAndUpdate(driver_id, { assign: "1" }, { new: true });
         await driver.save();
         // console.log(driver);
-        const ride = await createrideModel.findByIdAndUpdate(ride_id, { driver_id: driver_id, assigned: "accepted" , status : 3}, { new: true })
+        const ride = await createrideModel.findByIdAndUpdate(ride_id, { driver_id: driver_id, assigned: "accepted", status: 3 }, { new: true })
         await ride.save()
         io.emit('updateride', driver, ride);
+        sendmessageforacceptrequest();
       } catch (error) {
         console.log(error);
       }
@@ -430,7 +459,7 @@ async function initializeSocket(server) {
       const driver_id = data.driver_id;
       console.log(data);
       try {
-        const ride = await createrideModel.findByIdAndUpdate(ride_id, { assigned: "arrived" , status : 4 }, { new: true })
+        const ride = await createrideModel.findByIdAndUpdate(ride_id, { assigned: "arrived", status: 4 }, { new: true })
         await ride.save()
         io.emit('updateride', ride);
       } catch (error) {
@@ -442,7 +471,7 @@ async function initializeSocket(server) {
     socket.on('picked', async (data) => {
       const ride_id = data.ride_id;
       try {
-        const ride = await createrideModel.findByIdAndUpdate(ride_id, { assigned: "picked" , status : 5}, { new: true })
+        const ride = await createrideModel.findByIdAndUpdate(ride_id, { assigned: "picked", status: 5 }, { new: true })
         await ride.save()
         io.emit('updateride', ride);
       } catch (error) {
@@ -454,27 +483,34 @@ async function initializeSocket(server) {
     socket.on('started', async (data) => {
       const ride_id = data.ride_id;
       try {
-        const ride = await createrideModel.findByIdAndUpdate(ride_id, { assigned: "started" , status : 6 }, { new: true })
+        const ride = await createrideModel.findByIdAndUpdate(ride_id, { assigned: "started", status: 6 }, { new: true })
         await ride.save()
         io.emit('updateride', ride);
+        sendmessageforstartedride();
       } catch (error) {
         console.log(error);
       }
     })
+
+
+  
 
     // ride complete 
 
     socket.on('Completed', async (data) => {
       const ride_id = data.ride_id;
       const driver_id = data.driver_id;
-      console.log(data);
+      // console.log(data , " complted data ");
+      const ridedata = data.ridedata;
       try {
         const driver = await driverModel.findByIdAndUpdate(driver_id, { assign: "0" }, { new: true });
         await driver.save();
         // console.log(driver);
-        const ride = await createrideModel.findByIdAndUpdate(ride_id, { driver_id: driver_id , assigned: "completed" , status : 7 }, { new: true })
+        const ride = await createrideModel.findByIdAndUpdate(ride_id, { driver_id: driver_id, assigned: "completed", status: 7 }, { new: true })
         await ride.save()
         io.emit('updateride', driver, ride);
+        sendMail(ridedata);
+        sendmessageforcompletedride();
       } catch (error) {
         console.log(error);
       }
@@ -888,4 +924,285 @@ async function initializeSocket(server) {
   });
 }
 
+  // send mail 
+
+  const sendMail = async (req, res) => {
+    // console.log(req , "sendmaildataaaaaaaaaa");
+    const ridedata = req;
+    const settingdata = await settingModel.find()
+    const transporter = nodemailer.createTransport({
+      host: 'smtp.ethereal.email',
+      port: 587,
+      auth: {
+        user: settingdata[0].emailusername,
+        pass: settingdata[0].emailpassword
+      }
+    });
+
+    let info = await transporter.sendMail({
+      from: 'info@ethereal.email', // sender address
+      to: "krishnahothi.elluminatiinc@gmail.com", // list of receivers
+      subject: "YOUR INVOICE", // Subject line      
+      text: "", // plain text body
+      html: `<!DOCTYPE html>
+     
+       
+  <html>
+  <head>
+    <meta charset="utf-8">
+    <title>Invoice</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="license" href="https://www.opensource.org/licenses/mit-license/">
+    <script src="script.js"></script>
+    <style>/* reset */
+  
+    *
+    {
+      border: 0;
+      box-sizing: content-box;
+      color: inherit;
+      margin: 0;
+      padding: 0;
+      text-decoration: none;
+      vertical-align: top;
+    }
+    
+    /* content editable */
+    
+    *[contenteditable] { border-radius: 0.25em; min-width: 1em; outline: 0; }
+    
+    *[contenteditable] { cursor: pointer; }
+    
+    *[contenteditable]:hover, *[contenteditable]:focus, td:hover *[contenteditable], td:focus *[contenteditable], img.hover { background: #DEF; box-shadow: 0 0 1em 0.5em #DEF; }
+    
+    span[contenteditable] { display: inline-block; }
+    
+    /* heading */
+    
+    h1 { font: bold 100% sans-serif; letter-spacing: 0.5em; text-align: center; text-transform: uppercase; }
+    
+    /* table */
+    
+    table { font-size: 75%; table-layout: fixed; width: 100%; }
+    table { border-collapse: separate; border-spacing: 2px; }
+    th, td { border-width: 1px; padding: 0.5em; position: relative; text-align: left; }
+    th, td { border-radius: 0.25em; border-style: solid; }
+    th { background: #EEE; border-color: #BBB; }
+    td { border-color: #DDD; }
+    
+    /* page */
+    
+    html { font: 16px/1 'Open Sans', sans-serif; overflow: auto; padding: 0.5in; }
+    html { background: #999; cursor: default; }
+    
+    body { box-sizing: border-box; height: 11in; margin: 0 auto; overflow: hidden; padding: 0.5in; width: 8.5in; }
+    body { background: #FFF; border-radius: 1px; box-shadow: 0 0 1in -0.25in rgba(0, 0, 0, 0.5); }
+    
+    /* header */
+    
+    header { margin: 0 0 3em; }
+    header:after { clear: both; content: ""; display: table; }
+    
+    header h1 { background: #000; border-radius: 0.25em; color: #FFF; margin: 0 0 1em; padding: 0.5em 0; }
+    header address { float: left; font-size: 75%; font-style: normal; line-height: 1.25; margin: 0 1em 1em 0; }
+    header address p { margin: 0 0 0.25em; }
+    header span, header img { display: block; float: right; }
+    header span { margin: 0 0 1em 1em; max-height: 25%; max-width: 60%; position: relative; }
+    header img { max-height: 100%; max-width: 100%; }
+    header input { cursor: pointer; -ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=0)"; height: 100%; left: 0; opacity: 0; position: absolute; top: 0; width: 100%; }
+    
+    /* article */
+    
+    article, article address, table.meta, table.inventory { margin: 0 0 3em; }
+    article:after { clear: both; content: ""; display: table; }
+    article h1 { clip: rect(0 0 0 0); position: absolute; }
+    
+    article address { float: left; font-size: 125%; font-weight: bold; }
+    
+    /* table meta & balance */
+    
+    table.meta, table.balance { float: right; width: 36%; }
+    table.meta:after, table.balance:after { clear: both; content: ""; display: table; }
+    
+    /* table meta */
+    
+    table.meta th { width: 40%; }
+    table.meta td { width: 60%; }
+    
+    /* table items */
+    
+    table.inventory { clear: both; width: 100%; }
+    table.inventory th { font-weight: bold; text-align: center; }
+    
+    table.inventory td:nth-child(1) { width: 26%; }
+    table.inventory td:nth-child(2) { width: 38%; }
+    table.inventory td:nth-child(3) { text-align: right; width: 12%; }
+    table.inventory td:nth-child(4) { text-align: right; width: 12%; }
+    table.inventory td:nth-child(5) { text-align: right; width: 12%; }
+    
+    /* table balance */
+    
+    table.balance th, table.balance td { width: 50%; }
+    table.balance td { text-align: right; }
+    
+    /* aside */
+    
+    aside h1 { border: none; border-width: 0 0 1px; margin: 0 0 1em; }
+    aside h1 { border-color: #999; border-bottom-style: solid; }
+    
+    /* javascript */
+    
+    .add, .cut
+    {
+      border-width: 1px;
+      display: block;
+      font-size: .8rem;
+      padding: 0.25em 0.5em;	
+      float: left;
+      text-align: center;
+      width: 0.6em;
+    }
+    
+    .add, .cut
+    {
+      background: #9AF;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+      background-image: -moz-linear-gradient(#00ADEE 5%, #0078A5 100%);
+      background-image: -webkit-linear-gradient(#00ADEE 5%, #0078A5 100%);
+      border-radius: 0.5em;
+      border-color: #0076A3;
+      color: #FFF;
+      cursor: pointer;
+      font-weight: bold;
+      text-shadow: 0 -1px 2px rgba(0,0,0,0.333);
+    }
+    
+    .add { margin: -2.5em 0 0; }
+    
+    .add:hover { background: #00ADEE; }
+    
+    .cut { opacity: 0; position: absolute; top: 0; left: -1.5em; }
+    .cut { -webkit-transition: opacity 100ms ease-in; }
+    
+    tr:hover .cut { opacity: 1; }
+    
+    @media print {
+      * { -webkit-print-color-adjust: exact; }
+      html { background: none; padding: 0; }
+      body { box-shadow: none; margin: 0; }
+      span:empty { display: none; }
+      .add, .cut { display: none; }
+    }
+    
+    @page { margin: 0; }</style>
+  </head>
+  <body>
+  <header>
+  <h1>Invoice</h1>
+  <address contenteditable>
+    <p>User Name : ${ridedata.userdata.username}</p>
+    <p>User Email : ${ridedata.userdata.useremail}</p>
+    <p>User Phonenumber : ${ridedata.userdata.userphonenumber}</p>
+  </address>
+
+</header>
+<article>
+  <table class="meta">
+    <tr>
+      <th><span contenteditable>Invoice</span></th>
+      <td><span contenteditable>${ridedata._id}</span></td>
+    </tr>
+    <tr>
+      <th><span contenteditable>Date</span></th>
+      <td><span contenteditable>${ridedata.date}</span></td>
+    </tr>
+  </table>
+  <table class="inventory">
+    <thead>
+      <tr>
+        <th>STARTING LOCATION</th>
+        <th>DESTINATION LOCATION</th>
+        <th>TOTAl TIME </th>
+        <th>DISTANCE</th>
+        <th>PRICE</th>
+        <th>VEHICLE</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>${ridedata.startlocation}</td>
+        <td>${ridedata.destinationlocation}</td>
+        <td>${ridedata.estimatetime}</td>
+        <td>${ridedata.totaldistance}</td>
+        <td>${ridedata.estimatefare}</td>
+        <td>${ridedata.vehicledata.vehiclename || titlecase}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <table class="balance">
+    <tr>
+      <th><span contenteditable>Total</span></th>
+      <td><span data-prefix>$</span><span>${ridedata.estimatefare}</span></td>
+    </tr>
+  </table>
+</article>
+<aside>
+  <div contenteditable>
+  </div>
+</aside>
+</body>
+      </html>`
+      ,
+    });
+
+    console.log("Message sent: %s", info.messageId);
+
+  };
+
+function sendmessageforacceptrequest() {
+  try {
+    const message = client.messages.create({
+      body: 'Driver Accepted Request',
+      from: '+14175052749',
+      to: '+919484881886'
+    });
+    console.log(message.sid, 'message');
+  } catch (error) {
+    console.log('Error sending message:', error);
+  }
+}
+
+function sendmessageforstartedride() {
+  try {
+    const message = client.messages.create({
+      body: 'Ride start',
+      from: '+14175052749',
+      to: '+919484881886'
+    });
+    console.log(message.sid, 'message');
+  } catch (error) {
+    console.log('Error sending message:', error);
+  }
+}
+
+
+function sendmessageforcompletedride() {
+  try {
+    const message = client.messages.create({
+      body: 'Ride completed',
+      from: '+14175052749',
+      to: '+919484881886'
+    });
+    console.log(message.sid, 'message');
+  } catch (error) {
+    console.log('Error sending message:', error);
+  }
+}
+
+
 module.exports = initializeSocket;
+
+
+
+

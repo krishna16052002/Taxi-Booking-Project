@@ -57,7 +57,7 @@
           Started
         </button>
 
-        <button mat-raised-button color="primary" style="margin-bottom: 10px" (click)="completed(ride)" ; (click)="openDialog(ride)"
+        <button mat-raised-button color="primary" style="margin-bottom: 10px" (click)="completed(ride); openDialog(ride)"
           *ngIf="ride.status === 6">
           Completed
         </button>

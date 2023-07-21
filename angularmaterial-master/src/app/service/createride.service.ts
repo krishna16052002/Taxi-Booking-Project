@@ -32,4 +32,10 @@ export class CreaterideService {
   deleteride(_id: any): Observable<any> {
     return this.http.delete(`http://localhost:8080/createride/`+ _id)
   }
+
+  updateride(feedbackdata : any ):Observable<any>{
+    console.log(feedbackdata);
+
+    return this.http.patch('http://localhost:8080/createride' , feedbackdata );
+  }
 }
