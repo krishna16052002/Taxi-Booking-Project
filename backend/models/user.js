@@ -22,7 +22,7 @@ const userschema = new mongoose.Schema({
         type: String,
     },
     customer_id:{
-        
+       type: String 
     }
 });
 

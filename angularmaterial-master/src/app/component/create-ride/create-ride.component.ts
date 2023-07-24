@@ -290,7 +290,11 @@ export class CreateRideComponent implements OnInit {
             console.log(this.cityIndex, "cityindex");
 
             if (!this.isInZone) {
-              this.toaster.error('Service is not available')
+              this.toaster.error('Service is not available');
+              this.initMap();
+              this.estimateTime = "";
+              this.estimateFare="";
+
             } else {
               this.toaster.success("Service is available")
             }
@@ -471,7 +475,6 @@ export class CreateRideComponent implements OnInit {
       this.selectedvehicle.totalTime = this.totalTime;
     } else {
       console.log("not match ");
-
     }
     this.city_id = this.selectedvehicle.city_id;
     // console.log( this.city_id );

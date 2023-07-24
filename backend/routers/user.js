@@ -1,13 +1,15 @@
 const express = require("express");
 const router = express();
+require('dotenv').config();
 const multer = require("multer");
 const userModel = require("../models/user");
+const settingModel = require('../models/setting')
 const bodyparser = require("body-parser");
 router.use(bodyparser.json());
 const nodemailer = require("nodemailer");
 const STRIPE_PUBLISHABLE_KEY="pk_test_51NTisDLigteWfcRnZkQoTywuss8lTd3CUnil3xexs59lKQIlJcgEeJWCiMuExlDGlmtazauK0nBRj1hk6HoZOx9Q00Wt2DV8X0"
 const STRIPE_SECRET_KEY="sk_test_51NTisDLigteWfcRny45x5AlKwqwtjLMkZEAdwNkYCVzPuqMzbIJc66gNtYqenVaVdBuiyyCY3u9e2joX9LHSdVpz002bL4TERD"
-const stripe = require('stripe')(STRIPE_SECRET_KEY)
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
 
 
 // for send mail 
@@ -416,6 +418,16 @@ router.delete("/user/:id", async (req, res) => {
   }
 });
 
+// get the data 
+router.get("/user", async (req, res) => {
+  try {
+    const userdata = await userModel.find();
+    res.send(userdata);
+  } catch (error) {
+    res.send(error);
+  }
+})
+
 //  for search pagination and get the user data 
   router.get("/user/userdata", async (req, res) => {
     let page = parseInt(req.query.page);
@@ -482,6 +494,92 @@ router.delete("/user/:id", async (req, res) => {
     console.log(error);
   }
 });
+
+
+
+
+// stripe 
+router.post('/create-intent/:userId', async (req, res) => {
+  try {
+    console.log('called');
+    console.log(req.body.id);
+    let customer;
+    const userId = req.params.userId;
+    const user = await userModel.findById(userId);
+    // console.log(user);
+    if (!user.customer_id) {
+      customer = await stripe.customers.create({
+        email: user.useremail,
+        name: user.username,
+      });
+      user.customer_id = customer.id;
+      await user.save();
+    }
+    const card = await stripe.customers.createSource( user.customer_id, {
+      source: `${req.body.token.id}`
+  });
+    res.json({card});
+  } catch (error) {
+    console.error(error , "errrorrrrrrrrrrrrrrrrrrrrr");
+    res.status(400).json(error);
+  }
+  });
+
+  router.get('/get-card/:userId', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const user = await userModel.findById(userId);
+    if (!user.customer_id) {
+      return res.status(400).json({ success:true , error: 'User does not have a Stripe customer ID' });
+    }
+    const paymentMethods = await stripe.paymentMethods.list({
+      customer: user.customer_id,
+      type: 'card',
+    });
+    const paymentMethodsData = paymentMethods.data.map((card) => ({
+      ...card,
+    }));
+    console.log(paymentMethodsData);
+
+    res.json(paymentMethodsData);
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ error: 'Failed to retrieve card details' });
+  }
+});
+
+router.delete('/delete-card/:cardId', async (req, res) => {
+  try {
+    const cardId = req.params.cardId;
+    const deletedCard = await stripe.paymentMethods.detach(cardId);
+
+    res.status(200).json({success:true ,  message: 'Card deleted successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ error: 'Failed to delete card' });
+  }
+});
+
+router.patch('/default-card/:customerId', async (req, res) => {
+  try {
+    const cardId = req.body.cardId;
+    const customerId = req.params.customerId;
+    console.log(cardId);
+     await stripe.customers.update(customerId, {
+       invoice_settings: {
+         default_payment_method: cardId
+       }
+     });
+ 
+     res.status(200).json({ message: 'Default card set successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ error: 'Failed to set default card' });
+  }
+});
+
+
+
 
 
 module.exports = router;

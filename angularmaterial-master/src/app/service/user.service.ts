@@ -55,6 +55,12 @@ export class UserService {
 
     return this.http.get<any>("http://localhost:8080/user/userdata", { params: queryParams });
   }
+
+
+
+
+
+  
 }
 
 

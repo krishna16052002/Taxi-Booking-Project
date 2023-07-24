@@ -37,7 +37,7 @@ export class RidehistoryComponent {
   vehicledata: any;
   vehiclename: any;
   constructor(public dialog: MatDialog,
-    private _socketservice: SocketService , private formBuilder: FormBuilder ,     private _vehicle: VehicleService,) { }
+    private _socketservice: SocketService, private formBuilder: FormBuilder, private _vehicle: VehicleService,) { }
 
   ngOnInit() {
     this.searchForm = this.formBuilder.group({
@@ -46,7 +46,8 @@ export class RidehistoryComponent {
       fromdate: [''],
       todate: [''],
       pickupLocation: [''],
-      dropoffLocation: ['']
+      dropoffLocation: [''],
+      status:['']
     });
     this.ridehistorydata();
     this.aftercancelride();
@@ -165,6 +166,20 @@ export class RidehistoryComponent {
 
 
     // Perform further actions, such as filtering data based on form values
+  }
+
+  clearfilter() {
+
+    const data = {
+      vehicle_id: '',
+      cashCard: '',
+      fromdate: '',
+      todate: '',
+      pickupLocation: '',
+      dropoffLocation: ''
+    }
+
+    this._socketservice.emitridehistory({data : data})
   }
 
 }

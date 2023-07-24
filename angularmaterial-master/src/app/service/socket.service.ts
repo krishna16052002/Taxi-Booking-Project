@@ -216,6 +216,31 @@ export class SocketService {
     this.socket.emit('Completed',Completed);
   }
 
+  emitconfirmride(data: any){
+    console.log(data);
+
+    this.socket.emit('confirmride', data);
+  }
+
+
+
+  afterconfirmridedata(afterconfirmridedata: any): Observable<any> {
+    return new Observable((observer) => {
+      this.socket.on(afterconfirmridedata, (data: any) => {
+        observer.next(data);
+      });
+    });
+  }
+
+
+  oncronedata(cronedata: any): Observable<any> {
+    return new Observable((observer) => {
+      this.socket.on(cronedata, (data: any) => {
+        // console.log(data);
+        observer.next(data);
+      });
+    });
+  }
 
 
 }

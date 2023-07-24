@@ -1,8 +1,11 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { loadStripe } from '@stripe/stripe-js';
 import { ToastrService } from 'ngx-toastr';
 import { SocketService } from 'src/app/service/socket.service';
 import { UserService } from 'src/app/service/user.service';
+import { StripeComponent, userdata } from '../stripe/stripe.component';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-user',
@@ -49,12 +52,23 @@ pricing: any;
 count: number = 0;
 totalPage: number = 0;
   data: any;
+  http: any;
+  selectddefaultid: any;
+  defaultcardid: any;
+  cardLists: any;
+  AddCardUser: any;
+  cardlist: any = true ;
+  stripe: any;
+  paymentElement: any;
+  elements: any;
+  addcard: any;
 
   constructor(
     private _userservice: UserService,
     private formBuilder: FormBuilder,
     private toster: ToastrService,
-    private _socketservice : SocketService
+    private _socketservice : SocketService,
+    public dialog: MatDialog,
   ) { }
 
   ngOnInit() {
@@ -303,6 +317,163 @@ totalPage: number = 0;
     this.currentPage = 1; // Reset the current page to 1
     this.searchPricing(); // Fetch data based on the new limit
   }
+
+
+  openDialog(val: any) {
+    console.log(val);
+    // console.log(val._id);
+    // this._id = val._id
+
+    const dialogData: userdata = {
+      userdata: val,
+    };
+
+    const dialogRef: MatDialogRef<StripeComponent> = this.dialog.open(
+      StripeComponent,
+      {
+        width: '800px',
+        data: dialogData,
+      }
+    );
+
+    dialogRef.afterClosed().subscribe((data: string) => {
+      console.log(data);
+      // console.log(this._id);
+      // this.assignServices = data;
+      // console.log(this.assignServices);
+    });
+  }
+
+
+
+  // stripe
+
+
+
+
+// async AddCard( id:any) {
+//   console.log(id)
+// ;
+
+//   this.cardlist = false;
+//   this.stripe = await loadStripe("pk_test_51NObn2BQlJgbeIPVDnE96vIkSEi49vOF3vQEBazaLYwOs6L1LdAfIsC8w8uZTsBjBOmWcmJYsr9VazeXdSZuTti500MZxo1uou");
+//   // setTimeout(() => {
+//   this.elements = this.stripe.elements();
+//     console.log(this.elements);
+
+//     this.paymentElement = this.elements.create("card")
+//     await this.paymentElement.mount("#card-element");
+//   // },1000)
+//   this.AddCardUser = true;
+//   this.addcard = true;
+// }
+
+//  async AddCardDetails(userId: any) {
+
+//   console.log(userId);
+
+//   try {
+//     setTimeout(() => {
+//     if (!this.elements || !this.paymentElement) {
+//       throw new Error("Elements object is not initialized.");
+//     }
+
+//     const submitResult = this.elements.submit();
+//     const { error: submitError } = submitResult;
+
+//     if (submitError) {
+//       console.log(submitError);
+//       // this.handleError(submitError);
+//       return;
+//     }
+//   },1000)
+//   // Create the SetupIntent and obtain clientSecret
+//   const response = await fetch(`http://localhost:5000/api/create-intent/${this.id}`, {
+//       method: 'POST',
+//     });
+//     const { client_secret: clientSecret } = await response.json();
+
+//     const { paymentMethod, error } = await this.stripe.createPaymentMethod({
+//       type: 'card',
+//       card: this.paymentElement,
+//     });
+
+//     if (error) {
+//       console.log(error);
+//       return;
+//     }
+
+//     const { error: confirmError } = await this.stripe.confirmCardSetup(clientSecret, {
+//       payment_method: paymentMethod.id,
+//     });
+
+//     if (confirmError) {
+//       console.log(confirmError);
+//     } else {
+//        this.getCard(this.id);
+//       console.log("Successfully confirmed setup.");
+//       this.toster.success("Card added successfully!");
+//       this.AddCardUser = false;
+//       this.cardlist = true;
+//     }
+//   } catch (error) {
+//     console.log(error);
+//   }
+
+// }
+
+// getCard(userId: any) {
+//   this.http.get(`http://localhost:5000/api/get-card/${this.id}`)
+//     .subscribe(
+//       (response:any) => {
+//         this.cardLists[userId] = response;
+//          for (const paymentMethod of this.cardLists[userId]) {
+//            if (paymentMethod.isDefault == true) {
+//              this.defaultcardid =paymentMethod.id;
+//                break;
+//            }
+//          }
+//       },
+//       (error:any) => {
+//         console.error('Error:', error);
+//       }
+//     );
+// }
+
+// async deleteCard(cardId: any) {
+//   const confirmDelete = confirm("Are you sure you want to delete this card?");
+//   if (confirmDelete) {
+//     try {
+//       const response = await this.http.delete(`http://localhost:5000/api/delete-card/${cardId}`).toPromise();
+//       if (response && response['message'] === 'Card deleted successfully') {
+//         this.getCard(this.id);
+//         this.toster.success("Card deleted successfully!");
+//       } else {
+//         throw new Error("Failed to delete card");
+//       }
+//     } catch (error:any) {
+//       console.error(error);
+//       this.toster.error("Failed to delete card", "");
+//     }
+//   }
+// }
+
+// async SetDefault(customerId: any,cardId: any) {
+//   console.log(customerId);
+//   console.log(cardId);
+//   this.http
+//     .patch(`http://localhost:5000/api/default-card/${customerId}`, { cardId })
+//     .subscribe(
+//       (data:any) => {
+//         console.log(data);
+//         this.selectddefaultid = cardId;
+//          this.getCard(this.id)
+//       },
+//       (error:any) => {
+//         console.error("Error:", error);
+//       }
+//     );
+// }
 }
 
 

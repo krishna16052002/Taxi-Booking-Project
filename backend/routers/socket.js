@@ -159,11 +159,13 @@ async function initializeSocket(server) {
             console.log(elapsedTimeInSeconds);
             if (elapsedTimeInSeconds >= 20) {
               const result1 = await driverModel.findByIdAndUpdate(data.driver_id, { assign: "0" }, { new: true });
-              io.emit('riderejected', result1);
+              io.emit('cronedata', result1);
 
 
               const result = await createrideModel.findByIdAndUpdate(data._id, { driver_id: null, assigned: "pending", status: 0 }, { new: true });
               io.emit('riderejected', result);
+              io.emit('cronedata', result);
+
               // console.log('Cron job ended.');
 
             } else {
@@ -183,7 +185,7 @@ async function initializeSocket(server) {
             const city_id = new mongoose.Types.ObjectId(data.city_id);
             const vehicle_id = new mongoose.Types.ObjectId(data.vehicle_id);
             const assigneddrivers = [...new Set(data.assigndriverarray)];
-            let alldrivers = driverModel.aggregate([
+            let alldrivers =  driverModel.aggregate([
               {
                 $match: {
                   status: true,
@@ -272,7 +274,7 @@ async function initializeSocket(server) {
     // assign nearest driver 
 
     socket.on("assignnearestdriverdata", async (data) => {
-      console.log(data);
+      // console.log(data);
       try {
         const city_id = new mongoose.Types.ObjectId(data.cityId);
         const assignService = new mongoose.Types.ObjectId(data.assignService);
@@ -301,7 +303,7 @@ async function initializeSocket(server) {
         const ride = await createrideModel.findByIdAndUpdate(data._id, { driver_id: firstdriver._id, assigned: "assigning", status: 1, nearest: true, assigndriverarray: firstdriver._id, created: Date.now() }, { new: true })
         await ride.save()
         // Emit the 'assigndriverdatadata' event with the driver data to the client
-        io.emit("afterassignnearestdriverdata", { driverdata });
+        io.emit("afterassignnearestdriverdata", driverdata );
       } catch (error) {
         console.error(error);
       }
@@ -516,32 +518,30 @@ async function initializeSocket(server) {
       }
     })
 
-
+    
     socket.on('ridehistory', async (data) => {
-      // console.log(data);
+      console.log(data);
       const rideHistoryData = data.data;
-      // console.log(rideHistoryData);
-
-      // Accessing individual properties
+      const status = rideHistoryData.status;
+      console.log(status);
+      // const vehicleId = new mongoose.Types.ObjectId(rideHistoryData.vehicle_id);
       const vehicleId = rideHistoryData.vehicle_id;
-      // console.log(vehicleId);
+      console.log(vehicleId);
       const paymentOptions = rideHistoryData.cashCard;
-      // console.log(paymentOptions);
       const fromDate = rideHistoryData.fromdate;
       const toDate = rideHistoryData.todate;
       const pickupLocation = rideHistoryData.pickupLocation;
+      // console.log(pickupLocation);
       const dropoffLocation = rideHistoryData.dropoffLocation;
-
-      // console.log(paymentOptions , fromDate , toDate , pickupLocation , dropoffLocation)
+      // console.log(dropoffLocation);
 
       try {
-        let rideHistoryQuery = createrideModel.aggregate([
+        const pipeline = [
           {
             $match: {
               assigned: { $in: ["cancel", "completed"] }
             }
           },
-          // Add other stages for filtering based on parameters
           {
             $lookup: {
               from: "users",
@@ -589,41 +589,161 @@ async function initializeSocket(server) {
               preserveNullAndEmptyArrays: true
             }
           }
-        ]);
-        // if(vehicleId){
-        //   rideHistoryQuery = rideHistoryQuery.match({vehicle_id : vehicleId });
-        // }
-        // Apply filters based on parameters
+        ];
 
+        // Construct the $match stages based on provided filter parameters
         if (paymentOptions) {
-          rideHistoryQuery = rideHistoryQuery.match({ paymentoption: paymentOptions });
+          pipeline.push({
+            $match: { paymentoption: paymentOptions }
+          });
         }
         if (fromDate && toDate) {
-          rideHistoryQuery = rideHistoryQuery.match({
-            date: {
-              $gte: fromDate,
-              $lte: toDate
-            }
+          pipeline.push({
+            $match: { date: { $gte: fromDate, $lte: toDate } }
           });
         }
         if (pickupLocation) {
-          const regex = new RegExp(pickupLocation, "i");
-          rideHistoryQuery = rideHistoryQuery.match({ startlocation: regex });
-        }
-        if (dropoffLocation) {
-          const regex = new RegExp(dropoffLocation, "i");
-          rideHistoryQuery = rideHistoryQuery.match({ destinationlocation: regex });
+          pipeline.push({
+            $match: { startlocation: { $regex: pickupLocation, $options: "i" } }
+          });
         }
 
-        const rideHistoryData = await rideHistoryQuery.exec();
+        if (dropoffLocation) {
+          pipeline.push({
+            $match: { destinationlocation: { $regex: dropoffLocation, $options: "i" } }
+          });
+        }
+
+        if (status) {
+          pipeline.push({
+            $match: { assigned : status }
+          });
+        }
+
+        
+        if (vehicleId && vehicleId.trim() !== '') {
+          pipeline.push({
+            $match: { vehicle_id : new mongoose.Types.ObjectId(vehicleId) }
+          });
+        }
+
+        
+        const rideHistoryData = await createrideModel.aggregate(pipeline).exec();
 
         // Emit the filtered ride history data to the client
         io.emit("ridehistory", { ridehistorydata: rideHistoryData });
-        // console.log(rideHistoryData);
       } catch (error) {
         console.error(error);
       }
     });
+
+    // socket.on('ridehistory', async (data) => {
+    //   // console.log(data);
+    //   const rideHistoryData = data.data;
+    //   // console.log(rideHistoryData);
+
+    //   // Accessing individual properties
+    //   const vehicleId = rideHistoryData.vehicle_id;
+    //   // console.log(vehicleId);
+    //   const paymentOptions = rideHistoryData.cashCard;
+    //   // console.log(paymentOptions);
+    //   const fromDate = rideHistoryData.fromdate;
+    //   const toDate = rideHistoryData.todate;
+    //   const pickupLocation = rideHistoryData.pickupLocation;
+    //   const dropoffLocation = rideHistoryData.dropoffLocation;
+
+    //   // console.log(paymentOptions , fromDate , toDate , pickupLocation , dropoffLocation)
+
+    //   try {
+    //     let rideHistoryQuery = createrideModel.aggregate([
+    //       {
+    //         $match: {
+    //           assigned: { $in: ["cancel", "completed"] }
+    //         }
+    //       },
+    //       // Add other stages for filtering based on parameters
+    //       {
+    //         $lookup: {
+    //           from: "users",
+    //           foreignField: "_id",
+    //           localField: "user_id",
+    //           as: "userdata"
+    //         }
+    //       },
+    //       {
+    //         $unwind: "$userdata"
+    //       },
+    //       {
+    //         $lookup: {
+    //           from: "cities",
+    //           foreignField: "_id",
+    //           localField: "city_id",
+    //           as: "citydata"
+    //         }
+    //       },
+    //       {
+    //         $unwind: "$citydata"
+    //       },
+    //       {
+    //         $lookup: {
+    //           from: "vehicles",
+    //           foreignField: "_id",
+    //           localField: "vehicle_id",
+    //           as: "vehicledata"
+    //         }
+    //       },
+    //       {
+    //         $unwind: "$vehicledata"
+    //       },
+    //       {
+    //         $lookup: {
+    //           from: "drivers",
+    //           foreignField: "_id",
+    //           localField: "driver_id",
+    //           as: "driverdata"
+    //         }
+    //       },
+    //       {
+    //         $unwind: {
+    //           path: "$driverdata",
+    //           preserveNullAndEmptyArrays: true
+    //         }
+    //       }
+    //     ]);
+    //     // if(vehicleId){
+    //     //   rideHistoryQuery = rideHistoryQuery.match({vehicle_id : vehicleId });
+    //     // }
+    //     // Apply filters based on parameters
+
+    //     if (paymentOptions) {
+    //       rideHistoryQuery = rideHistoryQuery.match({ paymentoption: paymentOptions });
+    //     }
+    //     if (fromDate && toDate) {
+    //       rideHistoryQuery = rideHistoryQuery.match({
+    //         date: {
+    //           $gte: fromDate,
+    //           $lte: toDate
+    //         }
+    //       });
+    //     }
+    //     if (pickupLocation) {
+    //       const regex = new RegExp(pickupLocation, "i");
+    //       rideHistoryQuery = rideHistoryQuery.match({ startlocation: regex });
+    //     }
+    //     if (dropoffLocation) {
+    //       const regex = new RegExp(dropoffLocation, "i");
+    //       rideHistoryQuery = rideHistoryQuery.match({ destinationlocation: regex });
+    //     }
+
+    //     const rideHistoryData = await rideHistoryQuery.exec();
+
+    //     // Emit the filtered ride history data to the client
+    //     io.emit("ridehistory", { ridehistorydata: rideHistoryData });
+    //     // console.log(rideHistoryData);
+    //   } catch (error) {
+    //     console.error(error);
+    //   }
+    // });
 
 
 

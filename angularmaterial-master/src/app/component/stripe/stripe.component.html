@@ -1,0 +1,81 @@
+<!-- <p>stripe works!</p>
+  <div class="modal-dialog" >
+    <div class="modal-content">
+      <div class="modal-body">
+        <div class="card m-3">
+          <form id="payment-form">
+            <div id="card-element"></div>
+            <div class="text-center">
+              <button id="submit" class="btn btn-secondary m-2" (click)="AddCardDetails(userid)
+"
+                *ngIf="addcard">Add</button>
+            </div>
+            <div class="text-center">
+              <button id="submit" class="m-2" mat-raised-button color="primary" (click)="AddCardDetails(userid)">Add Card</button>
+            </div>
+            <div id="error-message"></div>
+          </form>
+        </div>
+        <div class="card m-3">
+          <div *ngIf="cardLists" class="d-flex flex-wrap">
+            <div *ngFor="let card of cardLists" class="d-flex align-items-center text-center">
+
+              <img src="../../../assets/img/visacard.png" alt="{{card.card.brand}}" class="ms-3">
+              <div class="ms-5">*** *** **** {{card.card.last4}}</div>
+              <div class="ms-5">{{card.card.exp_month}} / {{card.card.exp_year}}</div>
+              <div class=" ms-3"><a class="text-danger" >
+                (click)="deleteCard(card.id)"
+                <i class="fas fa-trash fa-lg mx-1"></i></a></div>
+
+              <div class="form-check ms-3" *ngIf="card.id != defaultcardid">
+                <input class="form-check-input" type="radio" name="notsetDefaultCard" [value]="card.id">
+                (change)="SetDefault(card.customer, card.id)"
+              </div>
+
+              <div class="form-check ms-3" *ngIf="card.id == defaultcardid">
+                <input class="form-check-input" type="radio" name="setDefaultCard" [value]="card.id" checked>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer d-flex justify-content-center">
+
+        <button class="btn btn-secondary mx-2">Cancel</button>
+      </div>
+    </div>
+  </div> -->
+
+
+
+  <mat-dialog-content>
+    <div id="card-element"></div>
+
+    <div class="card m-3">
+      <div *ngIf="carddata">
+        <div *ngFor="let card of carddata" class="d-flex align-items-center text-center">
+
+          <img src="https://www.pngmart.com/files/22/Visa-Card-Logo-PNG-Picture.png" style="height: 25px;" class="ms-3">
+          <div class="ms-5">*** *** **** {{card.card.last4}}</div>
+          <div class="ms-5">{{card.card.exp_month}} / {{card.card.exp_year}}</div>
+          <div class=" ms-3"><a class="text-danger" (click)="deleteCard(card.id)"  >
+            <mat-icon>delete</mat-icon></a></div>
+          <div class="form-check ms-3" *ngIf="card.id != defaultcardid">
+            <input class="form-check-input" type="radio" name="notsetDefaultCard" [value]="card.id" (change)="SetDefault(card.customer, card.id)" >
+
+          </div>
+
+          <div class="form-check ms-3" *ngIf="card.id == defaultcardid">
+            <input class="form-check-input" type="radio" name="setDefaultCard" [value]="card.id" checked>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button id="submit" class="m-2" mat-raised-button color="primary" (click)="addCard(userid)">Add Card</button>
+    <button mat-raised-button (click)="closeDialog()">Cancel</button>
+  </mat-dialog-actions>

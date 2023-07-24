@@ -24,7 +24,7 @@ const initializeSocket = require("./routers/socket")
 require("./db/conn");
 let Port = process.env.PORT || 8080;
 
-app.use(session({secret: 'Your_Secret_Key', resave: false, saveUninitialized: false}))
+// app.use(session({secret: 'Your_Secret_Key', resave: false, saveUninitialized: false}))
 
 app.use(cors());
 // app.use(express.urlencoded({ extended: true }));

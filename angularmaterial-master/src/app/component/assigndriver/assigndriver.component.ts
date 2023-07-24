@@ -1,7 +1,7 @@
 import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Socket } from 'socket.io-client';
-// import { PushnotificationService } from 'src/app/service/pushnotification.service';
+import { PushnotificationService } from 'src/app/service/pushnotification.service';
 import { SocketService } from 'src/app/service/socket.service';
 
 @Component({
@@ -28,13 +28,17 @@ export class AssigndriverComponent {
   driverdata: any;
   alldata: any;
   ride_id: any;
+  driverlength: any;
+  notificationSent: boolean = false;
 
   constructor(
     public dialogRef: MatDialogRef<AssigndriverComponent>,
     @Inject(MAT_DIALOG_DATA) public data: assigndriverdata,
     private _socketservice: SocketService,
-    // private notiservice:PushnotificationService
+    private notiservice:PushnotificationService
   ) { }
+
+
   ngOnInit() {
     this.changedrivervehicletype();
     // this.notiservice.requestNotificationPermission();
@@ -84,8 +88,40 @@ export class AssigndriverComponent {
     this._socketservice.onassigndriverdata().subscribe((response) => {
       this.drivers = response.driver;
       console.log(this.drivers);
+      this.driverlength = this.drivers.length
+      this.notiservice.requestNotificationPermission();
+      if (!this.notificationSent && this.driverlength === 0){
+        this.sendNotification('Driver not Found');
+        this.notificationSent = true;
+      }
     });
+
+    // this.requestPermissionAndSendNotification();
+
   }
+
+
+
+  // requestPermissionAndSendNotification() {
+
+  //   console.log(this.driverlength);
+
+  //     this.notiservice.requestNotificationPermission();
+  //     if (this.drivers.length === 0 ){
+  //       this.sendNotification('This is a push notification from Angular!');
+  //     }
+  //   }
+
+    sendNotification(message: string): void {
+
+      if ('Notification' in window && Notification.permission === 'granted') {
+          const notification = new Notification('Push Notification', {
+            body: message,
+          });
+        }
+
+
+    }
 
   //  whedriver ehicle service change then this change to the reflectedin assign driver component
   changedrivervehicletype() {
@@ -161,6 +197,8 @@ afterassignnearestdriver(){
       });
     });
    }
+
+   
 
   closeDialog(): void {
     this.dialogRef.close();

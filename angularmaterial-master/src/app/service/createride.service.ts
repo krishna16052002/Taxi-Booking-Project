@@ -38,4 +38,18 @@ export class CreaterideService {
 
     return this.http.patch('http://localhost:8080/createride' , feedbackdata );
   }
+
+
+  // getridedata(vehicle_id?: string, cashCard?: string, fromdate?: string ,  todate?: string , pickupLocation?: string , dropoffLocation?: string): Observable<any> {
+  //   const queryParams = {
+  //     vehicle_id: vehicle_id || '',
+  //     cashCard: cashCard || '',
+  //     fromdate: fromdate || '',
+  //     todate: todate || '',
+  //     pickupLocation: pickupLocation || '',
+  //     dropoffLocation: dropoffLocation || ''
+  //   };
+
+  //   return this.http.get<any>( 'http://localhost:8080/createride' , { params: queryParams });
+  // }
 }

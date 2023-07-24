@@ -35,6 +35,7 @@ const routes: Routes = [
   { path: 'ridehistoryinfo', loadChildren: () => import('../ridehistoryinfo/ridehistoryinfo.module').then(m => m.RidehistoryinfoModule) },
   { path: 'feedback', loadChildren: () => import('../feedback/feedback.module').then(m => m.FeedbackModule) },
    { path:'input' , component: InputComponent},
+   { path: 'stripe', loadChildren: () => import('../stripe/stripe.module').then(m => m.StripeModule) },
 ]},
 
   // { path: 'rideinfo', loadChildren: () => import('../rideinfo/rideinfo.module').then(m => m.RideinfoModule) },

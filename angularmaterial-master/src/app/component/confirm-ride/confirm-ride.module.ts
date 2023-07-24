@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { ConfirmRideRoutingModule } from './confirm-ride-routing.module';
 import { ConfirmRideComponent } from './confirm-ride.component';
 import { MaterialModule } from 'src/app/material-module';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
 import { RideinfoModule } from '../rideinfo/rideinfo.module';
 
@@ -20,7 +20,8 @@ import { RideinfoModule } from '../rideinfo/rideinfo.module';
     MaterialModule,
     FormsModule,
     MatTableModule,
-    RideinfoModule
+    RideinfoModule,
+    ReactiveFormsModule
   ]
 })
 export class ConfirmRideModule { }
