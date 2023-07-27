@@ -7,9 +7,10 @@ const settingModel = require('../models/setting')
 const bodyparser = require("body-parser");
 router.use(bodyparser.json());
 const nodemailer = require("nodemailer");
+const { default: mongoose } = require("mongoose");
 const STRIPE_PUBLISHABLE_KEY="pk_test_51NTisDLigteWfcRnZkQoTywuss8lTd3CUnil3xexs59lKQIlJcgEeJWCiMuExlDGlmtazauK0nBRj1hk6HoZOx9Q00Wt2DV8X0"
 const STRIPE_SECRET_KEY="sk_test_51NTisDLigteWfcRny45x5AlKwqwtjLMkZEAdwNkYCVzPuqMzbIJc66gNtYqenVaVdBuiyyCY3u9e2joX9LHSdVpz002bL4TERD"
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
+const stripe = require('stripe')(STRIPE_SECRET_KEY)
 
 
 // for send mail 
@@ -329,17 +330,11 @@ router.post("/user", upload.single("image"), async (req, res) => {
       usercountrycode: req.body.usercountrycode,
       image: req.file.originalname,
     })
-    const customer = await stripe.customers.create({
-      name:req.body.username,
-      email:req.body.useremail,
-  });
-
     await userdata.save();
     console.log(userdata);
     res.send({
       success: true,
       userdata,
-      customer,
       message: "add user successfully ",
     });
     sendMail();
@@ -420,6 +415,7 @@ router.delete("/user/:id", async (req, res) => {
 
 // get the data 
 router.get("/user", async (req, res) => {
+  console.log("hello");
   try {
     const userdata = await userModel.find();
     res.send(userdata);
@@ -439,7 +435,7 @@ router.get("/user", async (req, res) => {
       limit = 5;
     }
     if (!page || isNaN(page)) {
-      page = 1;
+      page = 1
     }
     
     let skip = (page - 1) * limit;
@@ -499,46 +495,50 @@ router.get("/user", async (req, res) => {
 
 
 // stripe 
-router.post('/create-intent/:userId', async (req, res) => {
+router.post('/createcustomerandaddcard/:id', async (req, res) => {
   try {
-    console.log('called');
-    console.log(req.body.id);
-    let customer;
-    const userId = req.params.userId;
-    const user = await userModel.findById(userId);
-    // console.log(user);
+    const id = new mongoose.Types.ObjectId(req.params.id);
+    const user = await userModel.findById(id);
     if (!user.customer_id) {
-      customer = await stripe.customers.create({
+      const customer = await stripe.customers.create({
         email: user.useremail,
         name: user.username,
       });
       user.customer_id = customer.id;
       await user.save();
     }
-    const card = await stripe.customers.createSource( user.customer_id, {
+    const card = await stripe.customers.createSource(user.customer_id, {
       source: `${req.body.token.id}`
   });
+  console.log(card , "carddata");
     res.json({card});
   } catch (error) {
-    console.error(error , "errrorrrrrrrrrrrrrrrrrrrrr");
+    console.error(error);
     res.status(400).json(error);
   }
   });
 
-  router.get('/get-card/:userId', async (req, res) => {
+  router.get('/get-card/:id', async (req, res) => {
+    
   try {
-    const userId = req.params.userId;
-    const user = await userModel.findById(userId);
+    const id = req.params.id;
+    const user = await userModel.findById(id);
     if (!user.customer_id) {
       return res.status(400).json({ success:true , error: 'User does not have a Stripe customer ID' });
     }
+    const customer = await stripe.customers.retrieve(user.customer_id);
+    const defaultCardId = customer.invoice_settings.default_payment_method;
     const paymentMethods = await stripe.paymentMethods.list({
       customer: user.customer_id,
       type: 'card',
+
     });
     const paymentMethodsData = paymentMethods.data.map((card) => ({
       ...card,
+      isdefalut : defaultCardId
     }));
+    const defaultCard = paymentMethodsData.find((card) => card.isDefault);
+console.log(defaultCard , " defalutcadddddd");
     console.log(paymentMethodsData);
 
     res.json(paymentMethodsData);
@@ -548,15 +548,13 @@ router.post('/create-intent/:userId', async (req, res) => {
   }
 });
 
-router.delete('/delete-card/:cardId', async (req, res) => {
+router.delete('/deletecard/:id', async (req, res) => {
   try {
-    const cardId = req.params.cardId;
-    const deletedCard = await stripe.paymentMethods.detach(cardId);
-
-    res.status(200).json({success:true ,  message: 'Card deleted successfully' });
+    const deletedCard = await stripe.paymentMethods.detach(req.params.id);
+    res.status(200).json({success:true ,  message: 'Delete Card successfully' });
   } catch (error) {
     console.error(error);
-    res.status(400).json({ error: 'Failed to delete card' });
+    res.status(400).json({ error: error });
   }
 });
 

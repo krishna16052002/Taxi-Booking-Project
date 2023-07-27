@@ -110,7 +110,7 @@
           :</label>
         <div class="dropdown">
           <select class="form-select" id="city" formControlName="city_id" #city (change)="onSelectedcity(city.value)">
-            <option value>select city </option>
+            <option value>select city</option>
             <option *ngFor="let city of citynamedata" [value]="city._id">{{city.city}}</option>
           </select>
         </div>

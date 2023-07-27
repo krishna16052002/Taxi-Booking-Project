@@ -41,49 +41,24 @@ export class AssigndriverComponent {
 
   ngOnInit() {
     this.changedrivervehicletype();
-    // this.notiservice.requestNotificationPermission();
     this.changeassigndriver();
     this.afterrideidnull();
     this.afterassignnearestdriver();
-    // console.log(this.data);
+    this.updateride();
     this.ridedata = this.data.assigndriver;
     console.log(this.ridedata);
     console.log(this.ridedata._id);
     this.ride_id =this.ridedata._id
     this.entries = Object.entries(this.ridedata);
     this.cityData = this.ridedata.citydata;
-    // console.log(this.ridedata.city_id);
-    // console.log(this.cityData);
     this.usersdata = this.ridedata.usersdata;
-    // console.log(this.usersdata);
     this.vehicledata = this.ridedata.vehicledata;
-    // console.log(this.vehicledata);
     this.eventData = {
       cityId: this.ridedata.city_id,
       assignService: this.ridedata.vehicle_id,
     };
-    // Listen for the 'assigndriverdata' event from the Socket.IO server
-    // this._socketservice.socket.on('assigndriverdata', (data: any) => {
-    //   this.drivers = data.driver;
-    //   console.log(this.drivers);
-
-    // });
     this._socketservice.emaitassigndriverdata(this.eventData);
     this._socketservice.socket.emit('assigndriverdata', this.eventData);
-
-    // Emit the 'assigndriverdata' event to request driver data from the server
-    this._socketservice.socket.on('driverstatuschanged', (data: any) => {
-      this._socketservice.socket.emit('assigndriverdata', this.eventData);
-
-      // console.log(data);
-      // // observer.next(data);
-      // this.drivers = data.driver.filter((driver:any) => driver.city_id === this.ridedata.city_id && driver.assignService === this.ridedata.vehicle_id)
-      // console.log(this.drivers);
-      this._socketservice.onassigndriverdata().subscribe((response) => {
-        this.drivers = response.driver;
-        console.log(this.drivers);
-      });
-    });
 
     this._socketservice.onassigndriverdata().subscribe((response) => {
       this.drivers = response.driver;
@@ -96,12 +71,24 @@ export class AssigndriverComponent {
       }
     });
 
+    this._socketservice.socket.on('driverstatuschanged', (data: any) => {
+      this.assigndriverdata();
+    });
+
+
+
     // this.requestPermissionAndSendNotification();
 
   }
 
 
-
+assigndriverdata(){
+  this._socketservice.socket.emit('assigndriverdata', this.eventData);
+  this._socketservice.onassigndriverdata().subscribe((response) => {
+    this.drivers = response.driver;
+    console.log(this.drivers);
+  });
+}
   // requestPermissionAndSendNotification() {
 
   //   console.log(this.driverlength);
@@ -128,24 +115,15 @@ export class AssigndriverComponent {
     this._socketservice.onchangedrivervehicletype('changevehicletype')
       .subscribe((data: any) => {
         this.drivers = data.updateDriver;
+        this.assigndriverdata();
 
-        this._socketservice.socket.emit('assigndriverdata', this.eventData);
-
-        this._socketservice.onassigndriverdata().subscribe((response) => {
-          this.drivers = response.driver;
-          console.log(this.drivers);
-        });
       });
   }
 
   changeassigndriver() {
     this._socketservice.assigndriverchange('assigndriver').subscribe((data: any) => {
-        this._socketservice.socket.emit('assigndriverdata', this.eventData);
+      this.assigndriverdata();
 
-        this._socketservice.onassigndriverdata().subscribe((response) => {
-          this.drivers = response.driver;
-          // console.log(this.drivers);
-        });
       });
   }
 
@@ -176,12 +154,7 @@ export class AssigndriverComponent {
 //  when assignnearestdriver on
 afterassignnearestdriver(){
   this._socketservice.onassignnearestdriverdata('afterassignnearestdriverdata').subscribe((data: any) => {
-    this._socketservice.socket.emit('assigndriverdata', this.eventData);
-
-    this._socketservice.onassigndriverdata().subscribe((response) => {
-      this.drivers = response.driver;
-
-    });
+    this.assigndriverdata();
   });
  }
 
@@ -189,16 +162,17 @@ afterassignnearestdriver(){
 // when the driver reject the ride then at a time that show a data in driver list in confirmridedata
   afterrideidnull(){
     this._socketservice.onrejectedride('riderejected').subscribe((data: any) => {
-      this._socketservice.socket.emit('assigndriverdata', this.eventData);
-
-      this._socketservice.onassigndriverdata().subscribe((response) => {
-        this.drivers = response.driver;
-
-      });
+      this.assigndriverdata();
     });
    }
 
-   
+   updateride(){
+    this._socketservice.updateride('updateride').subscribe((data: any) => {
+      this.assigndriverdata();
+    });
+   }
+
+
 
   closeDialog(): void {
     this.dialogRef.close();

@@ -8,7 +8,8 @@ const status = {
   picked: 5,
   started: 6,
   completed: 7,
-  cancel : 8 
+  cancel : 8 ,
+  hold: 9
 };
 
 const createrideSchema = mongoose.Schema(
@@ -48,10 +49,10 @@ const createrideSchema = mongoose.Schema(
     nearest :{
       type:Boolean
     },
-    assigndriverarray : { type:Array  , unique : true },
+    assigndriverarray : { type:Array , defalut : []  },
     status: {
       type: Number,
-      enum: [0, 1, 2, 3, 4, 5, 6, 7 , 8],
+      enum: [0, 1, 2, 3, 4, 5, 6, 7 , 8 , 9],
       default: 0,
     },
     feedback:{

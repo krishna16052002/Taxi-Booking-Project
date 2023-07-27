@@ -59,6 +59,8 @@ export class SettingsComponent {
         authtoken :this.settingdatabasedata.authtoken,
         emailusername:this.settingdatabasedata.emailusername,
         emailpassword :this.settingdatabasedata.emailpassword,
+        // public: this.settingdatabasedata.publickey,
+        // secreat:this.settingForm.secreatkey
       });
     });
   }

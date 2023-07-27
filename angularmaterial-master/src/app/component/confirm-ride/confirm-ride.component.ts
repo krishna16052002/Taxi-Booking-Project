@@ -62,38 +62,35 @@ export class ConfirmRideComponent {
       todate: [''],
       pickupLocation: [''],
       dropoffLocation: [''],
-      status:['']
+      status: [''],
     });
 
     const formData = this.searchForm.value;
     console.log(formData);
-    this._socketservice.emitconfirmride({ data: formData })
+    this._socketservice.emitconfirmride({ data: formData });
 
     this._vehicle.getvehicledata().subscribe((res) => {
       this.vehicledata = res;
       console.log(this.vehicledata);
     });
-
   }
-
-
-  // createridedata() {
-  //   this._socketservice.afterconfirmridedata('afterconfirmridedata').subscribe((data: any) => {
-  //     this.ridedata = data.ridehistorydata
-  //     ;
-  //     console.log(this.ridedata);
-  //     console.log(this.ridedata);
-
-  //   });
-  // }
-
 
   createridedata() {
-    this._createrideService.getridedata().subscribe((res) => {
-      this.ridedata = res;
-      console.log(this.ridedata);
-    });
+    this._socketservice
+      .afterconfirmridedata('afterconfirmridedata')
+      .subscribe((data: any) => {
+        this.ridedata = data.ridehistorydata;
+        console.log(this.ridedata);
+        console.log(this.ridedata);
+      });
   }
+
+  // createridedata() {
+  //   this._createrideService.getridedata().subscribe((res) => {
+  //     this.ridedata = res;
+  //     console.log(this.ridedata);
+  //   });
+  // }
 
   Ondelete(_id: string) {
     this._createrideService.deleteride(_id).subscribe(
@@ -131,7 +128,7 @@ export class ConfirmRideComponent {
       // console.log(this.assignServices);
     });
   }
-    openDialogassign(assigndriver: any) {
+  openDialogassign(assigndriver: any) {
     console.log(assigndriver);
     // console.log(assigndriver._id);
     // this._id = val._id
@@ -172,41 +169,64 @@ export class ConfirmRideComponent {
   cancelride(ride: any) {
     console.log(ride);
     this.ride_id = ride._id;
-
     this._socketservice.emitcancelride({ ride_id: this.ride_id });
   }
 
-
   aftercancelride() {
     this._socketservice.oncancelride('cancelride').subscribe((data: any) => {
+      const formData = this.searchForm.value;
+      console.log(formData);
+      this._socketservice.emitconfirmride({ data: formData });
+      this.createridedata();
+    });
+  }
+
+  afterrejectride() {
+    this._socketservice
+      .onrejectedride('riderejected')
+      .subscribe((data: any) => {
+        const formData = this.searchForm.value;
+        console.log(formData);
+        this._socketservice.emitconfirmride({ data: formData });
         this.createridedata();
       });
   }
 
-
-  afterrejectride(){
-      this._socketservice.onrejectedride('riderejected').subscribe((data: any) => {
-          this.createridedata();
-        });
-  }
-
-  oncronedata(){
+  oncronedata() {
     this._socketservice.onrejectedride('cronedata').subscribe((data: any) => {
+      const formData = this.searchForm.value;
+      console.log(formData);
+      this._socketservice.emitconfirmride({ data: formData });
       this.createridedata();
     });
   }
 
-  afterselectdriver(){
-    this._socketservice.onrejectedride('afterselectdriver').subscribe((data: any) => {
-      this.createridedata();
-    });
+  afterselectdriver() {
+    this._socketservice
+      .onrejectedride('afterselectdriver')
+      .subscribe((data: any) => {
+        const formData = this.searchForm.value;
+        console.log(formData);
+        this._socketservice.emitconfirmride({ data: formData });
+        this.createridedata();
+      });
   }
 
-  assigndriver(){
+  assigndriver() {
     this._socketservice.onassigndriverdata().subscribe((response) => {
+      const formData = this.searchForm.value;
+      console.log(formData);
+      this._socketservice.emitconfirmride({ data: formData });
       this.createridedata();
-    }
-    )
+    });
+  }
+  runningrequest() {
+    this._socketservice.onrunningrequest('runningrequest').subscribe((data: any) => {
+      const formData = this.searchForm.value;
+      console.log(formData);
+      this._socketservice.emitconfirmride({ data: formData });
+      this.createridedata();
+    });
   }
 
   onSelectedvehicle(value: string): void {
@@ -220,49 +240,37 @@ export class ConfirmRideComponent {
     });
   }
 
-
   onSubmit() {
     // Handle form submission logic here
     const formData = this.searchForm.value;
     console.log(formData);
     // console.log('hello');
 
-
-    this._socketservice.emitconfirmride({ data: formData })
-
-
+    this._socketservice.emitconfirmride({ data: formData });
 
     // Perform further actions, such as filtering data based on form values
   }
 
-
   clearfilter() {
-
     const data = {
       vehicle_id: '',
       cashCard: '',
       fromdate: '',
       todate: '',
       pickupLocation: '',
-      dropoffLocation: ''
-    }
+      dropoffLocation: '',
+    };
 
-
-    this._socketservice.emitconfirmride({ data: data })
-
+    this._socketservice.emitconfirmride({ data: data });
   }
 
-
-
-
-    // async AddCard(id:any) {
+  // async AddCard(id:any) {
   //   console.log(id);
 
   //   this.cardlist = false;
   //   this.stripe = await loadStripe("pk_test_51NTisDLigteWfcRnZkQoTywuss8lTd3CUnil3xexs59lKQIlJcgEeJWCiMuExlDGlmtazauK0nBRj1hk6HoZOx9Q00Wt2DV8X0");
 
   //   this.elements = this.stripe.elements();
-
 
   //     this.paymentElement = this.elements.create("card")
   //     this.paymentElement.mount("#card-element");
@@ -279,62 +287,59 @@ export class ConfirmRideComponent {
   //     );
   //     const token = await paymentMethod.token
   //     console.log('succes: ',await  paymentMethod.token);
-      // console.log('error: ', await error);
+  // console.log('error: ', await error);
 
+  // try {
+  //   setTimeout(() => {
+  //     if (!this.elements || !this.cardElement) {
+  //       throw new Error("Elements object is not initialized.");
+  //     }
 
-    // try {
-    //   setTimeout(() => {
-    //     if (!this.elements || !this.cardElement) {
-    //       throw new Error("Elements object is not initialized.");
-    //     }
+  //     const submitResult = this.elements.submit();
+  //     const { error: submitError } = submitResult;
 
-    //     const submitResult = this.elements.submit();
-    //     const { error: submitError } = submitResult;
+  //     if (submitError) {
+  //       console.log(submitError);
+  //       // this.handleError(submitError);
+  //       return;
+  //     }
+  //   }, 1000)
+  //   // Create the SetupIntent and obtain clientSecret
 
-    //     if (submitError) {
-    //       console.log(submitError);
-    //       // this.handleError(submitError);
-    //       return;
-    //     }
-    //   }, 1000)
-    //   // Create the SetupIntent and obtain clientSecret
+  // const response = await fetch(`http://localhost:8080/create-intent/${userId}`, {
+  //   method: 'POST',
+  //   headers: {
+  //     'Content-type': 'Application/json'
+  //   },
+  //   body: JSON.stringify({token})
+  // });
+  //   const { client_secret: clientSecret } = await response.json();
+  //   console.log(clientSecret);
+  //   const { paymentMethod, error } = await this.stripe.createPaymentMethod({
+  //     type: 'card',
+  //     card: this.cardElement,
+  //   });
 
+  //   if (error) {
+  //     console.log(error);
+  //     return;
+  //   }
 
+  //   const { error: confirmError } = await this.stripe.confirmCardSetup(clientSecret, {
+  //     payment_method: paymentMethod.id,
+  //   });
 
-      // const response = await fetch(`http://localhost:8080/create-intent/${userId}`, {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-type': 'Application/json'
-      //   },
-      //   body: JSON.stringify({token})
-      // });
-    //   const { client_secret: clientSecret } = await response.json();
-    //   console.log(clientSecret);
-    //   const { paymentMethod, error } = await this.stripe.createPaymentMethod({
-    //     type: 'card',
-    //     card: this.cardElement,
-    //   });
+  //   if (confirmError) {
+  //     console.log(confirmError);
+  //   } else {
+  //     //  this.getCard(this.userid);
+  //     console.log("Successfully confirmed setup.");
+  //     this.toster.success("Card added successfully!");
 
-    //   if (error) {
-    //     console.log(error);
-    //     return;
-    //   }
-
-    //   const { error: confirmError } = await this.stripe.confirmCardSetup(clientSecret, {
-    //     payment_method: paymentMethod.id,
-    //   });
-
-    //   if (confirmError) {
-    //     console.log(confirmError);
-    //   } else {
-    //     //  this.getCard(this.userid);
-    //     console.log("Successfully confirmed setup.");
-    //     this.toster.success("Card added successfully!");
-
-    //   }
-    // } catch (error) {
-    //   console.log(error);
-    // }
+  //   }
+  // } catch (error) {
+  //   console.log(error);
+  // }
 
   // }
 
@@ -390,9 +395,4 @@ export class ConfirmRideComponent {
   //       }
   //     );
   // }
-
-
-
-
-
 }

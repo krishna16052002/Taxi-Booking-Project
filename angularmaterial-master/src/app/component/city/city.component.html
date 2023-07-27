@@ -10,7 +10,7 @@
 <!-- original working code -->
 <div>
   <label for="country"> Country : </label>
-  <select id="country" #country (change)="onSelected(country.value)">
+  <select id="country" #country (change)="onSelected(country.value)" [disabled]="isUpdateClicked" >
     <option value>Select country </option>
     <option *ngFor="let country of countrydata" [value]="country._id">{{
       country.countryname
@@ -18,7 +18,7 @@
   </select><br>
   <br>
   <label for="city">City : </label>
-  <input type="text" id="search-box" [(ngModel)]="inputValue" #searchBox placeholder="Search for a city" />
+  <input type="text" id="search-box" [(ngModel)]="inputValue" #searchBox placeholder="Search for a city"  [disabled]="isUpdateClicked" />
   <br>
   <br>
   <button (click)="addcity()" class="btn btn-primary mx-5" *ngIf="isaddbutton">Add City</button>

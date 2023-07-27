@@ -6,6 +6,7 @@ import { SocketService } from 'src/app/service/socket.service';
 import { UserService } from 'src/app/service/user.service';
 import { StripeComponent, userdata } from '../stripe/stripe.component';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { CountryService } from 'src/app/service/country.service';
 
 @Component({
   selector: 'app-user',
@@ -62,6 +63,7 @@ totalPage: number = 0;
   paymentElement: any;
   elements: any;
   addcard: any;
+  countrydata: any;
 
   constructor(
     private _userservice: UserService,
@@ -69,27 +71,38 @@ totalPage: number = 0;
     private toster: ToastrService,
     private _socketservice : SocketService,
     public dialog: MatDialog,
+    private _country :CountryService
   ) { }
 
   ngOnInit() {
 
     this. searchPricing();
-    // this.fetchData();
-    this._userservice.getcountrycodedata().subscribe({
+
+
+    this._country.getcountrydatabasedata().subscribe({
       next: (countries: any) => {
-        countries.forEach((o: any) => {
-          if (o.idd.suffixes) {
-            let code = o.idd.root + o.idd.suffixes[0];
-            this.usercountrycodedata.push(code);
-          }
-        });
-        this.usercountrycodedata.sort();
+        this.countrydata = countries;
       },
       error: (error) => {
         console.log(error);
-      },
-      // console.log(this.usercountrycodedata);
+      }
     });
+    // // this.fetchData();
+    // this._userservice.getcountrycodedata().subscribe({
+    //   next: (countries: any) => {
+    //     countries.forEach((o: any) => {
+    //       if (o.idd.suffixes) {
+    //         let code = o.idd.root + o.idd.suffixes[0];
+    //         this.usercountrycodedata.push(code);
+    //       }
+    //     });
+    //     this.usercountrycodedata.sort();
+    //   },
+    //   error: (error) => {
+    //     console.log(error);
+    //   },
+    //   // console.log(this.usercountrycodedata);
+    // });
 
     this.userForm = this.formBuilder.group({
       username: ['' , Validators.required],
@@ -123,7 +136,7 @@ totalPage: number = 0;
 
   onSelected(value: string): void {
     this.countryname = value;
-    // console.log(this.countryname);
+    console.log(this.countryname);
   }
 
   Onupdatebuttonclick(_id: string, user: any) {
@@ -144,7 +157,7 @@ totalPage: number = 0;
     this.userForm.patchValue({
       username: user.username,
       useremail: user.useremail,
-      userphonenumber: user.userphonenumber,
+      userphonenumber: user.userphonenumber.slice(-10),
       usercountrycode: user.usercountrycode,
     });
   }
@@ -176,7 +189,8 @@ totalPage: number = 0;
     console.log(this.userForm.value.username);
     userformdata.append('username', this.userForm.value.username);
     userformdata.append('useremail', this.userForm.value.useremail);
-    userformdata.append('userphonenumber', this.userForm.value.userphonenumber);
+    // userformdata.append('userphonenumber',this.userForm.value.userphonenumber);
+    userformdata.append('userphonenumber',this.userForm.value.usercountrycode + this.userForm.value.userphonenumber );
     userformdata.append('usercountrycode', this.userForm.value.usercountrycode);
     if (this.uploadedimage) {
       userformdata.append('image', this.uploadedimage);

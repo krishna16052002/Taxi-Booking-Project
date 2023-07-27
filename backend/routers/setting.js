@@ -36,7 +36,9 @@ router.post("/setting", async (req, res) => {
 
 router.get("/setting", async (req, res) => {
     try {
+    // console.log("HI")
       const settingdata = await settingModel.find();
+      // console.log(settingdata)
       res.send(settingdata);
     } catch (error) {
       res.send(error);

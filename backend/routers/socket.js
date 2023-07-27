@@ -8,13 +8,17 @@ const driverModel = require("../models/driver");
 const { mongoose } = require('mongoose')
 const createrideModel = require("../models/createride");
 const { from } = require("nodemailer/lib/mime-node/le-windows");
-// const CronJob = require('cron').CronJob;
 const cron = require('node-cron');
 const nodemailer = require("nodemailer");
 const settingModel = require("../models/setting");
-const accountSid = process.env.ACCOUNTSID;
-const authToken = process.env.AUTHTOKEN;
-const client = require('twilio')(accountSid, authToken);
+const twilio = require('twilio');
+  async function getTwilioCredentials() {
+  const setting = await settingModel.find()
+  accountSid=setting[0].assountsid;
+  authToken=setting[0].authtoken;
+  }
+
+  getTwilioCredentials();
 
 async function initializeSocket(server) {
   const io = socketIo(server, { cors: { origin: ['http://localhost:4200'] } });
@@ -141,11 +145,11 @@ async function initializeSocket(server) {
 
     // crone 
 
-    const job = cron.schedule('* * * * * *', async () => {
+    const job = cron.schedule('*/30 * * * * *', async () => {
 
       const ride = await createrideModel.find({ assigned: "assigning", status: 1, nearest: false });
       const ridenearestdata = await createrideModel.find({ assigned: "assigning", status: 1, nearest: true });
-      // console.log(ride , "rideeeeeeeeeeeeeeeeeeeeeeeeeeeee");
+      // console.log(ride , "rideeeeeeeeeeeeeeeeeeeeeeeeeeeee");  
       // console.log(ridenearestdata , "nearesttttttttttttttttttttttt");
       if (ride.length > 0) {
         // console.log("hellodfvgbhnjmkmn");
@@ -180,12 +184,12 @@ async function initializeSocket(server) {
           // console.log(data.created);
           // console.log(currentTime.getTime());
           const elapsedTimeInSeconds = Math.floor((currentTime.getTime() - data.created) / 1000);
-          // console.log(elapsedTimeInSeconds);
+          console.log(elapsedTimeInSeconds);
           if (elapsedTimeInSeconds >= 20) {
             const city_id = new mongoose.Types.ObjectId(data.city_id);
             const vehicle_id = new mongoose.Types.ObjectId(data.vehicle_id);
             const assigneddrivers = [...new Set(data.assigndriverarray)];
-            let alldrivers =  driverModel.aggregate([
+            let alldrivers = driverModel.aggregate([
               {
                 $match: {
                   status: true,
@@ -214,21 +218,33 @@ async function initializeSocket(server) {
               io.emit('afterselectdriver', driverdata, driver, result)
             }
             else {
-              // console.log("pendingdrivers updatesssssssssssssssssssssssssssssssss ");
-              // const city_id = new mongoose.Types.ObjectId(data.city_id);
-              // const vehicle_id = new mongoose.Types.ObjectId(data.vehicle_id);
-              // const assigneddrivers = [...new Set(data.assigndriverarray)];
-              // let alldriversdatasdfghjkmnjhg = driverModel.aggregate([
-              //   {
-              //     $match: {
-              //       status: true,
-              //       city_id: city_id,
-              //       assignService: vehicle_id,
-              //       assign: "1",
-              //     },
-              //   },
-              // ]);
+              const city_id = new mongoose.Types.ObjectId(data.city_id);
+              const vehicle_id = new mongoose.Types.ObjectId(data.vehicle_id);
+              const assigneddrivers = [...new Set(data.assigndriverarray)];
+              let assigndriverdata = driverModel.aggregate([
+                {
+                  $match: {
+                    status: true,
+                    city_id: city_id,
+                    assignService: vehicle_id,
+                    assign: "1",
+                    _id: { $nin: assigneddrivers }
+                  },
+                },
+              ]);
+              
+            const assigndriverdatalist = await assigndriverdata.exec();
+              console.log(assigndriverdatalist);
+              if(assigndriverdatalist.length > 0){
+                console.log("called");
+                const result = await createrideModel.findByIdAndUpdate(data._id, { created: Date.now() , assigned: "hold", status: 9, driver_id: null }, { new: true });
+                io.emit('afternulldriverdata', result)
 
+              }else{
+                const driverdata = await driverModel.findByIdAndUpdate(data.driver_id, { assign: "0" }, { new: true });
+                const result = await createrideModel.findByIdAndUpdate(data._id, { created: Date.now(), assigndriverarray: [], nearest: false, assigned: "pending", status: 0, driver_id: null }, { new: true });
+                io.emit('afternulldriverdata', driverdata, result)
+              }
               // const pendingdriverdfghjksdfghj = await alldriversdatasdfghjkmnjhg.exec();
               // console.log(pendingdriverdfghjksdfghj);
               // for (const data of pendingdriverdfghjksdfghj) 
@@ -236,9 +252,7 @@ async function initializeSocket(server) {
               //   const driver = await driverModel.findByIdAndUpdate(data._id, { assign: "0" }, { new: true });
               //  }
 
-              const driverdata = await driverModel.findByIdAndUpdate(data.driver_id, { assign: "0" }, { new: true });
-              const result = await createrideModel.findByIdAndUpdate(data._id, { created: Date.now(), assigndriverarray: [], nearest: false, assigned: "pending", status: 0, driver_id: null }, { new: true });
-              io.emit('afternulldriverdata', driverdata, result)
+           
             }
           }
 
@@ -295,7 +309,7 @@ async function initializeSocket(server) {
 
         // console.log(driverdata);
         const firstdriver = driverdata[0]
-        console.log(firstdriver._id);
+        // console.log(firstdriver._id);
 
         const driver = await driverModel.findByIdAndUpdate(firstdriver._id, { assign: "1" }, { new: true });
         await driver.save();
@@ -303,7 +317,7 @@ async function initializeSocket(server) {
         const ride = await createrideModel.findByIdAndUpdate(data._id, { driver_id: firstdriver._id, assigned: "assigning", status: 1, nearest: true, assigndriverarray: firstdriver._id, created: Date.now() }, { new: true })
         await ride.save()
         // Emit the 'assigndriverdatadata' event with the driver data to the client
-        io.emit("afterassignnearestdriverdata", driverdata );
+        io.emit("afterassignnearestdriverdata", driverdata);
       } catch (error) {
         console.error(error);
       }
@@ -315,8 +329,8 @@ async function initializeSocket(server) {
         let runningrequest = createrideModel.aggregate([
           {
             $match: {
-              assigned: { $in: ["assigning", "accepted", "arrived", "picked", "started"] },
-              status: { $in: [1, 3, 4, 5, 6] }
+              assigned: { $in: ["assigning", "accepted", "arrived", "picked", "started" , "hold"] },
+              status: { $in: [1, 3, 4, 5, 6 , 9 ] }
 
             },
           },
@@ -368,7 +382,7 @@ async function initializeSocket(server) {
 
         const runningrequestdata = await runningrequest.exec();
 
-        console.log(runningrequestdata);
+        // console.log(runningrequestdata);
 
         // Emit the 'runningrequest' event with the driver data to the client
         io.emit("runningrequest", { runningrequestdata });
@@ -449,9 +463,9 @@ async function initializeSocket(server) {
         const ride = await createrideModel.findByIdAndUpdate(ride_id, { driver_id: driver_id, assigned: "accepted", status: 3 }, { new: true })
         await ride.save()
         io.emit('updateride', driver, ride);
-        sendmessageforacceptrequest();
+        // sendmessage(ride.status);
       } catch (error) {
-        console.log(error);
+        // console.log(error);
       }
     })
 
@@ -477,25 +491,26 @@ async function initializeSocket(server) {
         await ride.save()
         io.emit('updateride', ride);
       } catch (error) {
-        console.log(error);
+        // console.log(error);
       }
     })
 
     // ride started 
     socket.on('started', async (data) => {
+
       const ride_id = data.ride_id;
       try {
         const ride = await createrideModel.findByIdAndUpdate(ride_id, { assigned: "started", status: 6 }, { new: true })
         await ride.save()
         io.emit('updateride', ride);
-        sendmessageforstartedride();
+        // sendmessage(ride.status);
       } catch (error) {
-        console.log(error);
+        // console.log(error);
       }
     })
 
 
-  
+
 
     // ride complete 
 
@@ -512,21 +527,21 @@ async function initializeSocket(server) {
         await ride.save()
         io.emit('updateride', driver, ride);
         sendMail(ridedata);
-        sendmessageforcompletedride();
+        // sendmessage(ride.status);
       } catch (error) {
-        console.log(error);
+        // console.log(error);
       }
     })
 
-    
+
     socket.on('ridehistory', async (data) => {
-      console.log(data);
+      // console.log(data);
       const rideHistoryData = data.data;
       const status = rideHistoryData.status;
-      console.log(status);
+      // console.log(status);
       // const vehicleId = new mongoose.Types.ObjectId(rideHistoryData.vehicle_id);
       const vehicleId = rideHistoryData.vehicle_id;
-      console.log(vehicleId);
+      // console.log(vehicleId);
       const paymentOptions = rideHistoryData.cashCard;
       const fromDate = rideHistoryData.fromdate;
       const toDate = rideHistoryData.todate;
@@ -616,18 +631,18 @@ async function initializeSocket(server) {
 
         if (status) {
           pipeline.push({
-            $match: { assigned : status }
+            $match: { assigned: status }
           });
         }
 
-        
+
         if (vehicleId && vehicleId.trim() !== '') {
           pipeline.push({
-            $match: { vehicle_id : new mongoose.Types.ObjectId(vehicleId) }
+            $match: { vehicle_id: new mongoose.Types.ObjectId(vehicleId) }
           });
         }
 
-        
+
         const rideHistoryData = await createrideModel.aggregate(pipeline).exec();
 
         // Emit the filtered ride history data to the client
@@ -636,6 +651,377 @@ async function initializeSocket(server) {
         console.error(error);
       }
     });
+
+
+
+    socket.on('confirmride', async (data) => {
+      // console.log(data);
+      const rideHistoryData = data.data;
+      const vehicleId = rideHistoryData.vehicle_id;
+      // console.log(vehicleId);
+      const fromDate = rideHistoryData.fromdate;
+      const toDate = rideHistoryData.todate;
+      const pickupLocation = rideHistoryData.pickupLocation;
+      // console.log(pickupLocation);
+      const dropoffLocation = rideHistoryData.dropoffLocation;
+      // console.log(dropoffLocation);
+
+      try {
+        const pipeline = [
+          {
+            $match: {
+              status: { $in: [0 , 2 , 1] }
+            }
+          },
+          {
+            $lookup: {
+              from: "users",
+              foreignField: "_id",
+              localField: "user_id",
+              as: "userdata"
+            }
+          },
+          {
+            $unwind: "$userdata"
+          },
+          {
+            $lookup: {
+              from: "cities",
+              foreignField: "_id",
+              localField: "city_id",
+              as: "citydata"
+            }
+          },
+          {
+            $unwind: "$citydata"
+          },
+          {
+            $lookup: {
+              from: "vehicles",
+              foreignField: "_id",
+              localField: "vehicle_id",
+              as: "vehicledata"
+            }
+          },
+          {
+            $unwind: "$vehicledata"
+          },
+          {
+            $lookup: {
+              from: "drivers",
+              foreignField: "_id",
+              localField: "driver_id",
+              as: "driverdata"
+            }
+          },
+          {
+            $unwind: {
+              path: "$driverdata",
+              preserveNullAndEmptyArrays: true
+            }
+          }
+        ];
+
+      
+        if (fromDate && toDate) {
+          pipeline.push({
+            $match: { date: { $gte: fromDate, $lte: toDate } }
+          });
+        }
+
+        if (pickupLocation) {
+          pipeline.push({
+            $match: { startlocation: { $regex: pickupLocation, $options: "i" } }
+          });
+        }
+
+        if (dropoffLocation) {
+          pipeline.push({
+            $match: { destinationlocation: { $regex: dropoffLocation, $options: "i" } }
+          });
+        }
+
+
+        if (vehicleId && vehicleId.trim() !== '') {
+          pipeline.push({
+            $match: { vehicle_id: new mongoose.Types.ObjectId(vehicleId) }
+          });
+        }
+
+        const rideHistoryData = await createrideModel.aggregate(pipeline).exec();
+        // console.log(rideHistoryData)
+        // Emit the filtered ride history data to the client
+        io.emit("afterconfirmridedata", { ridehistorydata: rideHistoryData });
+      } catch (error) {
+        console.error(error);
+      }
+    });
+
+    socket.on('disconnect', () => {
+      console.log('socket disconnected');
+    });
+
+  });
+}
+
+// send mail 
+
+const sendMail = async (req, res) => {
+  // console.log(req , "sendmaildataaaaaaaaaa");
+  const ridedata = req;
+  const settingdata = await settingModel.find()
+  const transporter = nodemailer.createTransport({
+    host: 'smtp.ethereal.email',
+    port: 587,
+    auth: {
+      user: settingdata[0].emailusername,
+      pass: settingdata[0].emailpassword
+    }
+  });
+
+  let info = await transporter.sendMail({
+    from: 'info@ethereal.email', // sender address
+    to: "krishnahothi.elluminatiinc@gmail.com", // list of receivers
+    subject: "YOUR INVOICE", // Subject line      
+    text: "", // plain text body
+    html: `<!DOCTYPE html>
+     
+       
+  <html>
+  <head>
+    <meta charset="utf-8">
+    <title>Invoice</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="license" href="https://www.opensource.org/licenses/mit-license/">
+    <script src="script.js"></script>
+    <style>/* reset */
+  
+    *
+    {
+      border: 0;
+      box-sizing: content-box;
+      color: inherit;
+      margin: 0;
+      padding: 0;
+      text-decoration: none;
+      vertical-align: top;
+    }
+    
+    /* content editable */
+    
+    *[contenteditable] { border-radius: 0.25em; min-width: 1em; outline: 0; }
+    
+    *[contenteditable] { cursor: pointer; }
+    
+    *[contenteditable]:hover, *[contenteditable]:focus, td:hover *[contenteditable], td:focus *[contenteditable], img.hover { background: #DEF; box-shadow: 0 0 1em 0.5em #DEF; }
+    
+    span[contenteditable] { display: inline-block; }
+    
+    /* heading */
+    
+    h1 { font: bold 100% sans-serif; letter-spacing: 0.5em; text-align: center; text-transform: uppercase; }
+    
+    /* table */
+    
+    table { font-size: 75%; table-layout: fixed; width: 100%; }
+    table { border-collapse: separate; border-spacing: 2px; }
+    th, td { border-width: 1px; padding: 0.5em; position: relative; text-align: left; }
+    th, td { border-radius: 0.25em; border-style: solid; }
+    th { background: #EEE; border-color: #BBB; }
+    td { border-color: #DDD; }
+    
+    /* page */
+    
+    html { font: 16px/1 'Open Sans', sans-serif; overflow: auto; padding: 0.5in; }
+    html { background: #999; cursor: default; }
+    
+    body { box-sizing: border-box; height: 11in; margin: 0 auto; overflow: hidden; padding: 0.5in; width: 8.5in; }
+    body { background: #FFF; border-radius: 1px; box-shadow: 0 0 1in -0.25in rgba(0, 0, 0, 0.5); }
+    
+    /* header */
+    
+    header { margin: 0 0 3em; }
+    header:after { clear: both; content: ""; display: table; }
+    
+    header h1 { background: #000; border-radius: 0.25em; color: #FFF; margin: 0 0 1em; padding: 0.5em 0; }
+    header address { float: left; font-size: 75%; font-style: normal; line-height: 1.25; margin: 0 1em 1em 0; }
+    header address p { margin: 0 0 0.25em; }
+    header span, header img { display: block; float: right; }
+    header span { margin: 0 0 1em 1em; max-height: 25%; max-width: 60%; position: relative; }
+    header img { max-height: 100%; max-width: 100%; }
+    header input { cursor: pointer; -ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=0)"; height: 100%; left: 0; opacity: 0; position: absolute; top: 0; width: 100%; }
+    
+    /* article */
+    
+    article, article address, table.meta, table.inventory { margin: 0 0 3em; }
+    article:after { clear: both; content: ""; display: table; }
+    article h1 { clip: rect(0 0 0 0); position: absolute; }
+    
+    article address { float: left; font-size: 125%; font-weight: bold; }
+    
+    /* table meta & balance */
+    
+    table.meta, table.balance { float: right; width: 36%; }
+    table.meta:after, table.balance:after { clear: both; content: ""; display: table; }
+    
+    /* table meta */
+    
+    table.meta th { width: 40%; }
+    table.meta td { width: 60%; }
+    
+    /* table items */
+    
+    table.inventory { clear: both; width: 100%; }
+    table.inventory th { font-weight: bold; text-align: center; }
+    
+    table.inventory td:nth-child(1) { width: 26%; }
+    table.inventory td:nth-child(2) { width: 38%; }
+    table.inventory td:nth-child(3) { text-align: right; width: 12%; }
+    table.inventory td:nth-child(4) { text-align: right; width: 12%; }
+    table.inventory td:nth-child(5) { text-align: right; width: 12%; }
+    
+    /* table balance */
+    
+    table.balance th, table.balance td { width: 50%; }
+    table.balance td { text-align: right; }
+    
+    /* aside */
+    
+    aside h1 { border: none; border-width: 0 0 1px; margin: 0 0 1em; }
+    aside h1 { border-color: #999; border-bottom-style: solid; }
+    
+    /* javascript */
+    
+    .add, .cut
+    {
+      border-width: 1px;
+      display: block;
+      font-size: .8rem;
+      padding: 0.25em 0.5em;	
+      float: left;
+      text-align: center;
+      width: 0.6em;
+    }
+    
+    .add, .cut
+    {
+      background: #9AF;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+      background-image: -moz-linear-gradient(#00ADEE 5%, #0078A5 100%);
+      background-image: -webkit-linear-gradient(#00ADEE 5%, #0078A5 100%);
+      border-radius: 0.5em;
+      border-color: #0076A3;
+      color: #FFF;
+      cursor: pointer;
+      font-weight: bold;
+      text-shadow: 0 -1px 2px rgba(0,0,0,0.333);
+    }
+    
+    .add { margin: -2.5em 0 0; }
+    
+    .add:hover { background: #00ADEE; }
+    
+    .cut { opacity: 0; position: absolute; top: 0; left: -1.5em; }
+    .cut { -webkit-transition: opacity 100ms ease-in; }
+    
+    tr:hover .cut { opacity: 1; }
+    
+    @media print {
+      * { -webkit-print-color-adjust: exact; }
+      html { background: none; padding: 0; }
+      body { box-shadow: none; margin: 0; }
+      span:empty { display: none; }
+      .add, .cut { display: none; }
+    }
+    
+    @page { margin: 0; }</style>
+  </head>
+  <body>
+  <header>
+  <h1>Invoice</h1>
+  <address contenteditable>
+    <p>User Name : ${ridedata.userdata.username}</p>
+    <p>User Email : ${ridedata.userdata.useremail}</p>
+    <p>User Phonenumber : ${ridedata.userdata.userphonenumber}</p>
+  </address>
+
+</header>
+<article>
+  <table class="meta">
+    <tr>
+      <th><span contenteditable>Invoice</span></th>
+      <td><span contenteditable>${ridedata._id}</span></td>
+    </tr>
+    <tr>
+      <th><span contenteditable>Date</span></th>
+      <td><span contenteditable>${ridedata.date}</span></td>
+    </tr>
+  </table>
+  <table class="inventory">
+    <thead>
+      <tr>
+        <th>STARTING LOCATION</th>
+        <th>DESTINATION LOCATION</th>
+        <th>TOTAl TIME </th>
+        <th>DISTANCE</th>
+        <th>PRICE</th>
+        <th>VEHICLE</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>${ridedata.startlocation}</td>
+        <td>${ridedata.destinationlocation}</td>
+        <td>${ridedata.estimatetime}</td>
+        <td>${ridedata.totaldistance}</td>
+        <td>${ridedata.estimatefare}</td>
+        <td>${ridedata.vehicledata.vehiclename || titlecase}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <table class="balance">
+    <tr>
+      <th><span contenteditable>Total</span></th>
+      <td><span data-prefix>$</span><span>${ridedata.estimatefare}</span></td>
+    </tr>
+  </table>
+</article>
+<aside>
+  <div contenteditable>
+  </div>
+</aside>
+</body>
+      </html>`
+    ,
+  });
+
+  console.log("Message sent: %s", info.messageId);
+
+};
+
+function sendmessage(ride) {
+  // console.log(ride , "ridestatusfff");
+  try {
+    const client = twilio(accountSid, authToken);
+    const message = client.messages.create({
+      body: ride==3?"driver accept request":(ride==6?"ride started" : " complete ride"),
+      from: '+14175052749',
+      to: '+919484881886'
+    });
+    console.log(message.sid, 'message');
+  } catch (error) {
+    console.log('Error sending message:', error);
+  }
+}
+
+
+module.exports = initializeSocket;
+
+
+
+
+
 
     // socket.on('ridehistory', async (data) => {
     //   // console.log(data);
@@ -1035,294 +1421,3 @@ async function initializeSocket(server) {
     //     io.emit("ridehistory", error)
     //   }
     // })
-
-
-    socket.on('disconnect', () => {
-      console.log('socket disconnected');
-    });
-
-  });
-}
-
-  // send mail 
-
-  const sendMail = async (req, res) => {
-    // console.log(req , "sendmaildataaaaaaaaaa");
-    const ridedata = req;
-    const settingdata = await settingModel.find()
-    const transporter = nodemailer.createTransport({
-      host: 'smtp.ethereal.email',
-      port: 587,
-      auth: {
-        user: settingdata[0].emailusername,
-        pass: settingdata[0].emailpassword
-      }
-    });
-
-    let info = await transporter.sendMail({
-      from: 'info@ethereal.email', // sender address
-      to: "krishnahothi.elluminatiinc@gmail.com", // list of receivers
-      subject: "YOUR INVOICE", // Subject line      
-      text: "", // plain text body
-      html: `<!DOCTYPE html>
-     
-       
-  <html>
-  <head>
-    <meta charset="utf-8">
-    <title>Invoice</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="license" href="https://www.opensource.org/licenses/mit-license/">
-    <script src="script.js"></script>
-    <style>/* reset */
-  
-    *
-    {
-      border: 0;
-      box-sizing: content-box;
-      color: inherit;
-      margin: 0;
-      padding: 0;
-      text-decoration: none;
-      vertical-align: top;
-    }
-    
-    /* content editable */
-    
-    *[contenteditable] { border-radius: 0.25em; min-width: 1em; outline: 0; }
-    
-    *[contenteditable] { cursor: pointer; }
-    
-    *[contenteditable]:hover, *[contenteditable]:focus, td:hover *[contenteditable], td:focus *[contenteditable], img.hover { background: #DEF; box-shadow: 0 0 1em 0.5em #DEF; }
-    
-    span[contenteditable] { display: inline-block; }
-    
-    /* heading */
-    
-    h1 { font: bold 100% sans-serif; letter-spacing: 0.5em; text-align: center; text-transform: uppercase; }
-    
-    /* table */
-    
-    table { font-size: 75%; table-layout: fixed; width: 100%; }
-    table { border-collapse: separate; border-spacing: 2px; }
-    th, td { border-width: 1px; padding: 0.5em; position: relative; text-align: left; }
-    th, td { border-radius: 0.25em; border-style: solid; }
-    th { background: #EEE; border-color: #BBB; }
-    td { border-color: #DDD; }
-    
-    /* page */
-    
-    html { font: 16px/1 'Open Sans', sans-serif; overflow: auto; padding: 0.5in; }
-    html { background: #999; cursor: default; }
-    
-    body { box-sizing: border-box; height: 11in; margin: 0 auto; overflow: hidden; padding: 0.5in; width: 8.5in; }
-    body { background: #FFF; border-radius: 1px; box-shadow: 0 0 1in -0.25in rgba(0, 0, 0, 0.5); }
-    
-    /* header */
-    
-    header { margin: 0 0 3em; }
-    header:after { clear: both; content: ""; display: table; }
-    
-    header h1 { background: #000; border-radius: 0.25em; color: #FFF; margin: 0 0 1em; padding: 0.5em 0; }
-    header address { float: left; font-size: 75%; font-style: normal; line-height: 1.25; margin: 0 1em 1em 0; }
-    header address p { margin: 0 0 0.25em; }
-    header span, header img { display: block; float: right; }
-    header span { margin: 0 0 1em 1em; max-height: 25%; max-width: 60%; position: relative; }
-    header img { max-height: 100%; max-width: 100%; }
-    header input { cursor: pointer; -ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=0)"; height: 100%; left: 0; opacity: 0; position: absolute; top: 0; width: 100%; }
-    
-    /* article */
-    
-    article, article address, table.meta, table.inventory { margin: 0 0 3em; }
-    article:after { clear: both; content: ""; display: table; }
-    article h1 { clip: rect(0 0 0 0); position: absolute; }
-    
-    article address { float: left; font-size: 125%; font-weight: bold; }
-    
-    /* table meta & balance */
-    
-    table.meta, table.balance { float: right; width: 36%; }
-    table.meta:after, table.balance:after { clear: both; content: ""; display: table; }
-    
-    /* table meta */
-    
-    table.meta th { width: 40%; }
-    table.meta td { width: 60%; }
-    
-    /* table items */
-    
-    table.inventory { clear: both; width: 100%; }
-    table.inventory th { font-weight: bold; text-align: center; }
-    
-    table.inventory td:nth-child(1) { width: 26%; }
-    table.inventory td:nth-child(2) { width: 38%; }
-    table.inventory td:nth-child(3) { text-align: right; width: 12%; }
-    table.inventory td:nth-child(4) { text-align: right; width: 12%; }
-    table.inventory td:nth-child(5) { text-align: right; width: 12%; }
-    
-    /* table balance */
-    
-    table.balance th, table.balance td { width: 50%; }
-    table.balance td { text-align: right; }
-    
-    /* aside */
-    
-    aside h1 { border: none; border-width: 0 0 1px; margin: 0 0 1em; }
-    aside h1 { border-color: #999; border-bottom-style: solid; }
-    
-    /* javascript */
-    
-    .add, .cut
-    {
-      border-width: 1px;
-      display: block;
-      font-size: .8rem;
-      padding: 0.25em 0.5em;	
-      float: left;
-      text-align: center;
-      width: 0.6em;
-    }
-    
-    .add, .cut
-    {
-      background: #9AF;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.2);
-      background-image: -moz-linear-gradient(#00ADEE 5%, #0078A5 100%);
-      background-image: -webkit-linear-gradient(#00ADEE 5%, #0078A5 100%);
-      border-radius: 0.5em;
-      border-color: #0076A3;
-      color: #FFF;
-      cursor: pointer;
-      font-weight: bold;
-      text-shadow: 0 -1px 2px rgba(0,0,0,0.333);
-    }
-    
-    .add { margin: -2.5em 0 0; }
-    
-    .add:hover { background: #00ADEE; }
-    
-    .cut { opacity: 0; position: absolute; top: 0; left: -1.5em; }
-    .cut { -webkit-transition: opacity 100ms ease-in; }
-    
-    tr:hover .cut { opacity: 1; }
-    
-    @media print {
-      * { -webkit-print-color-adjust: exact; }
-      html { background: none; padding: 0; }
-      body { box-shadow: none; margin: 0; }
-      span:empty { display: none; }
-      .add, .cut { display: none; }
-    }
-    
-    @page { margin: 0; }</style>
-  </head>
-  <body>
-  <header>
-  <h1>Invoice</h1>
-  <address contenteditable>
-    <p>User Name : ${ridedata.userdata.username}</p>
-    <p>User Email : ${ridedata.userdata.useremail}</p>
-    <p>User Phonenumber : ${ridedata.userdata.userphonenumber}</p>
-  </address>
-
-</header>
-<article>
-  <table class="meta">
-    <tr>
-      <th><span contenteditable>Invoice</span></th>
-      <td><span contenteditable>${ridedata._id}</span></td>
-    </tr>
-    <tr>
-      <th><span contenteditable>Date</span></th>
-      <td><span contenteditable>${ridedata.date}</span></td>
-    </tr>
-  </table>
-  <table class="inventory">
-    <thead>
-      <tr>
-        <th>STARTING LOCATION</th>
-        <th>DESTINATION LOCATION</th>
-        <th>TOTAl TIME </th>
-        <th>DISTANCE</th>
-        <th>PRICE</th>
-        <th>VEHICLE</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>${ridedata.startlocation}</td>
-        <td>${ridedata.destinationlocation}</td>
-        <td>${ridedata.estimatetime}</td>
-        <td>${ridedata.totaldistance}</td>
-        <td>${ridedata.estimatefare}</td>
-        <td>${ridedata.vehicledata.vehiclename || titlecase}</td>
-      </tr>
-    </tbody>
-  </table>
-
-  <table class="balance">
-    <tr>
-      <th><span contenteditable>Total</span></th>
-      <td><span data-prefix>$</span><span>${ridedata.estimatefare}</span></td>
-    </tr>
-  </table>
-</article>
-<aside>
-  <div contenteditable>
-  </div>
-</aside>
-</body>
-      </html>`
-      ,
-    });
-
-    console.log("Message sent: %s", info.messageId);
-
-  };
-
-function sendmessageforacceptrequest() {
-  try {
-    const message = client.messages.create({
-      body: 'Driver Accepted Request',
-      from: '+14175052749',
-      to: '+919484881886'
-    });
-    console.log(message.sid, 'message');
-  } catch (error) {
-    console.log('Error sending message:', error);
-  }
-}
-
-function sendmessageforstartedride() {
-  try {
-    const message = client.messages.create({
-      body: 'Ride start',
-      from: '+14175052749',
-      to: '+919484881886'
-    });
-    console.log(message.sid, 'message');
-  } catch (error) {
-    console.log('Error sending message:', error);
-  }
-}
-
-
-function sendmessageforcompletedride() {
-  try {
-    const message = client.messages.create({
-      body: 'Ride completed',
-      from: '+14175052749',
-      to: '+919484881886'
-    });
-    console.log(message.sid, 'message');
-  } catch (error) {
-    console.log('Error sending message:', error);
-  }
-}
-
-
-module.exports = initializeSocket;
-
-
-
-

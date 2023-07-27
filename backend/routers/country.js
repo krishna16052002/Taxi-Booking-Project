@@ -19,15 +19,17 @@ router.post("/country", async (req, res) => {
   catch (error) {
     console.log(error);
     if(error.keyPattern){
-      if (error.keyPattern.vehiclename) {
+      if (error.keyPattern.countryname) {
         return res.status(500).send({
           success: false,
           message: "country already exist!!!!!!!!!!!!!!!!!!!!" 
         })
       } 
+    }else{
+      res.status(500).send({error})
+
     }
   
-    res.status(500).send({error, message: "country already exist!!!!!!!!!!!!!!!!!!!!" })
   }
 });
 

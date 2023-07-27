@@ -40,16 +40,17 @@ export class CreaterideService {
   }
 
 
-  // getridedata(vehicle_id?: string, cashCard?: string, fromdate?: string ,  todate?: string , pickupLocation?: string , dropoffLocation?: string): Observable<any> {
-  //   const queryParams = {
-  //     vehicle_id: vehicle_id || '',
-  //     cashCard: cashCard || '',
-  //     fromdate: fromdate || '',
-  //     todate: todate || '',
-  //     pickupLocation: pickupLocation || '',
-  //     dropoffLocation: dropoffLocation || ''
-  //   };
+  checkuserdetails(data :any ): Observable<any>{
+    return this.http.post('http://localhost:8080/checkuserdetails' , data );
+  }
 
-  //   return this.http.get<any>( 'http://localhost:8080/createride' , { params: queryParams });
+  checkvehiclepricing(data : any ) : Observable <any > {
+    return this.http.post('http://localhost:8080/checkvehiclepricing' , data)
+  }
+
+  // getridedata(queryParams:any ): Observable<any> {
+  //   console.log(queryParams , "confirmridedata");
+
+  //   return this.http.get<any>( 'http://localhost:8080/createride' ,  queryParams );
   // }
 }

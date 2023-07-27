@@ -32,7 +32,13 @@ export class VehicleTypeComponent {
       vehiclename: ['', [Validators.required]],
       image: ['']
     });
-    // get data
+
+    this.getvehicle()
+  }
+
+  // get vehicle
+
+  getvehicle(){
     this._vehicle.getvehicledata().subscribe((res) => {
       this.vehicledatadfghjk = res;
     });
@@ -74,8 +80,9 @@ export class VehicleTypeComponent {
           key.forEach((key: any) => {
             updatetedVehicle[key] = res[key]
           })
+          this.getvehicle()
           this.vehicleform.reset();
-          this.toster.success("update vehicle successfully ");
+          this.toster.success("update vehicle successfully");
           // let objToUpdate = this.vehicledatadfghjk.push(function (obj: any) {
           //   return obj._id == updateId})
 
@@ -98,6 +105,7 @@ export class VehicleTypeComponent {
             image: res.vehicledata.image
           }
           this.vehicledatadfghjk.push(res.vehicledata);
+          this.getvehicle()
           this.toster.success(res.message);
           this.vehicleform.reset();
         },

@@ -318,6 +318,8 @@ export class DriversComponent {
     this.id = driver._id;
     console.log(this.id);
 
+console.log(driver.city_id);
+
     if (this.isshow) {
       this.isshow = this.isshow;
       // console.log('hhhhhh');
@@ -344,7 +346,7 @@ export class DriversComponent {
   }
 
   OnSubmit() {
-    
+
     if(this.driverForm.invalid){
       this.driverForm.markAllAsTouched();
       return

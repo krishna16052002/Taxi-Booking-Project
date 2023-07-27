@@ -3,6 +3,7 @@ import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { loadStripe, } from '@stripe/stripe-js';
 import { ToastrService } from 'ngx-toastr';
+import { StripeService } from 'src/app/service/stripe.service';
 @Component({
   selector: 'app-stripe',
   templateUrl: './stripe.component.html',
@@ -10,7 +11,7 @@ import { ToastrService } from 'ngx-toastr';
 })
 export class StripeComponent {
   selectddefaultid: any;
-  defaultcardid: any;
+  defalutcard: any;
   cardLists: any;
   AddCardUser: any;
   cardlist: any = true;
@@ -24,7 +25,7 @@ export class StripeComponent {
   carddata: any;
 
   constructor(public dialogRef: MatDialogRef<StripeComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: userdata, private http: HttpClient, private toster: ToastrService) { }
+    @Inject(MAT_DIALOG_DATA) public data: userdata, private http: HttpClient, private toster: ToastrService , private _stripeService : StripeService) { }
 
 
   async ngOnInit() {
@@ -47,15 +48,27 @@ export class StripeComponent {
 
   }
 
-  async addCard(id: any) {
+  isButtonDefault(): boolean {
+    return true;
+  }
 
-    console.log(id);
+  toggleDefault(): void {
+    // Replace this logic with your actual logic to toggle the default state of the button
+    // For example, you can use a boolean property or a service to store this information
+    // Here, I'm assuming you are flipping the state between default and non-default on each click
+    const currentDefaultState = this.isButtonDefault();
+    // Replace this with your actual logic to set the button state (true or false)
+    // For example: this.isButtonDefault() = !this.isButtonDefault();
+  }
+
+  async addCard(id: any) {
       const paymentMethod = await this.stripe.createToken(
         this.cardElement,
       );
       const token = await paymentMethod.token
       console.log('succes: ',await  paymentMethod.token);
-      const response = await fetch(`http://localhost:8080/create-intent/${id}`, {
+
+      const response = await fetch(`http://localhost:8080/createcustomerandaddcard/${id}`, {
         method: 'POST',
         headers: {
           'Content-type': 'Application/json'
@@ -67,42 +80,32 @@ export class StripeComponent {
 
   }
 
-  getCard(userId: any) {
-    this.http.get(`http://localhost:8080/get-card/${userId}`)
-      .subscribe(
-        (response:any) => {
-          console.log(response);
-            this.carddata = response;
-
-          //  for (const paymentMethod of this.carddata) {
-          //    if (paymentMethod.isDefault == true) {
-          //      this.defaultcardid = paymentMethod.id;
-          //        break;
-          //    }
-          //  }
-        },
-        (error:any) => {
-          console.error('Error:', error);
-        }
-      );
+  getCard(id: any) {
+    const userid = id
+    this._stripeService.getcard(id).subscribe({
+      next: (res: any) => {
+        this.carddata = res;
+      },
+      error: (error) => {
+        console.log(error);
+      }
+    })
   }
 
-  async deleteCard(cardId: any) {
-    const confirmDelete = confirm("Are you sure you want to delete this card?");
-    if (confirmDelete) {
-      try {
-        const response = await this.http.delete(`http://localhost:8080/delete-card/${cardId}`).toPromise();
-        if (response) {
-          this.getCard(this.userid);
-          this.toster.success("Card deleted successfully!");
-        } else {
-          throw new Error("Failed to delete card");
+ deleteCard(id: any) {
+  console.log(id); //  get a card id
+    // const confirmDelete = confirm("Are you sure you want to delete this card?");
+    // if (confirmDelete) {
+      this._stripeService.deletecard(id).subscribe({
+        next: (res: any) => {
+          this.toster.success(res.message)
+          this.getCard(this.userid)
+        },
+        error: (error) => {
+          console.log(error);
         }
-      } catch (error:any) {
-        console.error(error);
-        this.toster.error("Failed to delete card", "");
-      }
-    }
+      })
+    // }
   }
 
   async SetDefault(customerId: any,cardId: any) {

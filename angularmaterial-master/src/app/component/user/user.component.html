@@ -74,13 +74,22 @@
       <div class="mb-3">
         <label class="form-label d-flex justify-content-start" for="usercountrycode">Country Code :</label>
         <div class="dropdown">
+          <select class="form-select" id="country" #country (change)="onSelected(country.value)"
+            formControlName="usercountrycode">
+            <option value>Select country </option>
+            <option *ngFor="let country of countrydata" [value]="country.countrycode">{{country.countrycode}}</option>
+          </select>
+        </div>
+
+
+        <!-- <div class="dropdown">
           <select class="form-select" id="country" formControlName="usercountrycode">
             <option value="">Select country code</option>
             <option value="{{ code }}" *ngFor="let code of usercountrycodedata">
               {{ code }}
             </option>
           </select>
-        </div>
+        </div> -->
       </div>
       <div *ngIf="userForm.get('usercountrycode')?.invalid && (userForm.get('usercountrycode')?.dirty || userForm.get('usercountrycode')?.touched)">
         <div [hidden]="!userForm.get('usercountrycode')?.errors?.['required']" class="text-danger"
@@ -126,7 +135,7 @@
         <td class="font-weight-bold">{{ user.username }}</td>
         <td class="font-weight-bold">{{ user.useremail }}</td>
         <td class="font-weight-bold">
-          {{ user.usercountrycode }}{{ user.userphonenumber }}
+    {{ user.userphonenumber }}
         </td>
         <!-- <td class="font-weight-bold"> {{ user.usercountrycode }}</td> -->
         <td class="font-weight-bold">

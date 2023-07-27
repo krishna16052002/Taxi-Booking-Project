@@ -30,27 +30,25 @@ const upload = multer({
 });
 
 router.post("/vehicletype", upload.single("image"), async (req, res) => {
-  console.log(req.body);
+  console.log(req.body.vehiclename);
   try {
-    // let vehicletypedata;
-    // if (!req.file) {
-    //   return res.send({
-    //     success: false,
-    //     message: "Please Fill All Details!!"
-    //   })
-    // } else {
+    let vehicletypedata;
+      vehicletypedata = new vehicle({
+        vehiclename: req.body.vehiclename,
+        // image: req.file.originalname,
+      });
+      if(req.body.originalname){
       vehicletypedata = new vehicle({
         vehiclename: req.body.vehiclename,
         image: req.file.originalname,
       });
-     
-    // }
+      }
    const vehicledata =  await vehicletypedata.save();
     console.log(vehicledata);
     res.send({
       success: true,
       vehicledata,
-      message: " Hureee finallyyy add vehicle successfully ",
+      message: "Hureee finallyyy add vehicle successfully",
     });
   } catch (error) {
     
@@ -63,7 +61,7 @@ router.post("/vehicletype", upload.single("image"), async (req, res) => {
       } 
     }
   
-    res.status(500).send({error , message : " add vehicle "})
+    res.status(500).send({error , message : error})
   }
 });
 

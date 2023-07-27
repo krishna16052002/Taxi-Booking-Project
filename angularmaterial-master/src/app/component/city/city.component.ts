@@ -42,10 +42,11 @@ export class CityComponent {
 
   // update
   id: any;
-  isDisabled: boolean = false;
+
   marker: any;
   citydata: any;
   polygons: any[] = [];
+  isUpdateClicked: boolean = false;
 
   constructor(
     private _cityservice: CityService,
@@ -55,6 +56,7 @@ export class CityComponent {
   ) { }
 
   ngOnInit() {
+
     this._cityservice.getcountry().subscribe({
       next: (countries: any) => {
         // countries.forEach((o: any) => {
@@ -152,8 +154,6 @@ export class CityComponent {
     this.country = value  // country id
     //   selected country id and api countrydata  match and when both id match then  that id  show a countryname that countryname to use in rest api
     console.log(this.country);
-
-
     this.countrydata.map((country: any) => {
       if (country._id === value) {
         this.countryName = country.countryname
@@ -162,104 +162,73 @@ export class CityComponent {
     })
     // console.log(this.countryName);
 
+console.log(this.polygons , "polygonnnnnnnnn");
 
-// Retrieve new polygons for the selected place
-// Clear existing polygons from the map
-this.polygons.forEach((polygon: any) => {
-  if (polygon instanceof google.maps.Polygon) {
-    polygon.setMap(null); // Remove the polygon from the map
-  }
-});
-this.polygons = []; // Clear the polygons array
-
-// Retrieve new polygons for the selected place
-this._cityservice.getonlycity().subscribe((response: any) => {
-  this.citydata = response;
-  console.log(this.citydata);
-
-  this.citydata.forEach((city: any) => {
-    if (city.country_id === this.country) {
-      console.log(city.country_id);
-
-      this.polygons.push(city.coordinates);
+  this.polygons.forEach((polygon: any) => {
+    if (polygon instanceof google.maps.Polygon ) {
+      polygon.setMap(null);
     }
   });
+  this.polygons = [];
 
-  console.log(this.polygons);
+  // Retrieve new polygons for the selected place
+  this._cityservice.getonlycity().subscribe((response: any) => {
+    this.citydata = response;
+    // console.log(this.citydata);
 
-  this.polygons.forEach((polygonCoordinates: any) => {
-    const polygon = new google.maps.Polygon({
-      paths: polygonCoordinates,
-      map: this.map // Display the polygon on the map
-    });
-    if (polygon instanceof google.maps.Polygon) {
-      polygon.setMap(this.map); // Set the map for the polygon
-    }
-  });
-});
+    this.citydata.forEach((city: any) => {
+      if (city.country_id === this.country) {
+        // console.log(city.country_id);
 
-
-
-
-
-    //   console.log(this.polygons);
-
-    //   this.polygon = this.polygons.map(function (polygonCoordinates: any) {
-    //     return new google.maps.Polygon({
-    //       paths: polygonCoordinates
-    //     });
-    //   });
-
-    // }, (error) => {
-    //   console.log(error);
-    //   this.toaster.error(error.status, error.message)
-
-
-
-    // Update autocomplete restrictions based on the selected country
-    this.http.get<any>(`https://restcountries.com/v3.1/name/${this.countryName}`).subscribe(
-      {
-
-        next: countryRes => {
-          let rcountry = countryRes.filter((obj: any) => {
-            return obj.name.common == this.countryName
-
-          })
-          // console.log(this.countryName);
-          // console.log(rcountry);
-          // console.log(rcountry[0].cca2.toLowerCase());
-          let code = rcountry[0].cca2.toLowerCase()
-          // console.log(code);
-
-
-          this.autocomplete.setTypes(['(cities)']);
-          this.autocomplete.setComponentRestrictions({ 'country': code });
-
-        },
-        error: error => {
-          console.log("country select error ", error.message);
-        }
+        this.polygons.push(city.coordinates);
       }
-    )
-    // this.autocomplete.setComponentRestrictions({ country: this.selectedCountry });
-    // this.autocomplete.setTypes(['(cities)']);
-    // this.autocomplete.setFields(['geometry']);
-  }
+    });
+
+    console.log(this.polygons);
+
+    this.polygons.forEach((polygonCoordinates: any) => {
+      const polygon = new google.maps.Polygon({
+        paths: polygonCoordinates,
+        map: this.map // Display the polygon on the map
+      });
+      if (polygon instanceof google.maps.Polygon) {
+        polygon.setMap(this.map); // Set the map for the polygon
+      }
+    });
+  });
+
+      // Update autocomplete restrictions based on the selected country
+      this.http.get<any>(`https://restcountries.com/v3.1/name/${this.countryName}`).subscribe(
+        {
+          next: countryRes => {
+            let rcountry = countryRes.filter((obj: any) => {
+              return obj.name.common == this.countryName
+            })
+            let code = rcountry[0].cca2.toLowerCase()
+            this.autocomplete.setTypes(['(cities)']);
+            this.autocomplete.setComponentRestrictions({ 'country': code });
+
+          },
+          error: error => {
+            console.log("country select error ", error.message);
+          }
+        }
+      )
+}
+
+
 
   checkLocation() {
     const geocoder = new google.maps.Geocoder();
-    this.inputValue = this.searchBox.nativeElement.value; // Get the value of the input
-    // console.log(this.inputValue);
-
+    this.inputValue = this.searchBox.nativeElement.value;
+    // Get the value of the input
     geocoder.geocode({ address: this.inputValue }, (results: any, status: any) => {
       if (status === 'OK') {
         const location = results[0].geometry.location;
         this.isInZone = google.maps.geometry.poly.containsLocation(location, this.polygon);
-        // this.toster.success("Yes, Your entered location belongs to drawn zone.")
+
         if (this.isInZone == true) {
           const polygonPath = this.polygon.getPath();
-          this.toster.success("Yes, Your entered location belongs to drawn zone.")
-
           this.coordinates = polygonPath.getArray().map((results: { lat: () => any; lng: () => any; }) => ({
             lat: results.lat(),
             lng: results.lng(),
@@ -315,53 +284,51 @@ this._cityservice.getonlycity().subscribe((response: any) => {
   }
 
   addcity() {
-    const payload = {
-      coordinates: this.coordinates,
-      city: this.inputValue,
-      countryid: this.country
-    };
-    // check the location and polygon
     const geocoder = new google.maps.Geocoder();
     this.inputValue = this.searchBox.nativeElement.value; // Get the value of the input
-    console.log(this.inputValue);
+    // console.log(this.inputValue);
 
     geocoder.geocode({ address: this.inputValue }, (results: any, status: any) => {
       if (status === 'OK') {
         const location = results[0].geometry.location;
         this.isInZone = google.maps.geometry.poly.containsLocation(location, this.polygon);
         // this.toster.success("Yes, Your entered location belongs to drawn zone.")
+        if (this.isInZone == true) {
+          const polygonPath = this.polygon.getPath();
+          this.coordinates = polygonPath.getArray().map((results: { lat: () => any; lng: () => any; }) => ({
+            lat: results.lat(),
+            lng: results.lng(),
+          }));
+          // this.toster.success("res.message");
+          console.log('Coordinates:', this.coordinates);
+          // this.allcoordinates ={Coordinates : coordinates };
+          const payload = {
+            coordinates: this.coordinates,
+            city: this.inputValue,
+            countryid: this.country
+          };
+
+          this._cityservice.addcity(payload).subscribe({
+            next: (res: any) => {
+              this.citydatabasedata.push(res.city);
+              this.toster.success(res.message);
+            },
+            error: (error) => {
+              // console.log();
+              this.toster.error(error.error.message);
+            },
+          });
+
+        } else {
+          // console.log("zone coordinates not found");
+          this.toster.error("Sorry! Entered location doesn’t belong to drawn zone.")
+
+        }
       } else {
         alert(status);
       }
-      console.log(this.isInZone);
-      if (this.isInZone == true) {
-        const polygonPath = this.polygon.getPath();
-        this.toster.success("Yes, Your entered location belongs to drawn zone.")
-        //  first create  a coordinates
-        this.coordinates = polygonPath.getArray().map((results: { lat: () => any; lng: () => any; }) => ({
-          lat: results.lat(),
-          lng: results.lng(),
-        }));
-        this.toster.success("res.message");
-        // console.log('Coordinates:', this.coordinates);
-        // this.allcoordinates ={Coordinates : coordinates };
 
-        this._cityservice.addcity(payload).subscribe({
-          next: (res: any) => {
-            this.citydatabasedata.push(res.city);
-            this.toster.success(res.message);
-          },
-          error: (error) => {
-            // console.log();
-            this.toster.warning(error.error.message);
-          },
-        });
 
-      } else {
-        // console.log("zone coordinates not found");
-        this.toster.warning("Sorry! Entered location doesn’t belong to drawn zone.")
-
-      }
     });
 
     // console.log(payload);
@@ -388,27 +355,19 @@ this._cityservice.getonlycity().subscribe((response: any) => {
 
 
   fetchcitydata(): void {
-    console.log('called');
+    // console.log('called');
 
     this._cityservice.getcity().subscribe(
       (response) => {
         this.citydatabasedata = response;
-        console.log(response);
+        // console.log(response);
       },
       (error) => {
         console.log(error);
       }
     );
   }
-  // onTableDataChange(event: any) {
-  //   this.page = event;
-  //   this.fetchcitydata();
-  // }
-  // onTableSizeChange(event: any): void {
-  //   this.tableSize = event.target.value;
-  //   this.page = 1;
-  //   this.fetchcitydata();
-  // }
+
   onPageChange(event: any): void {
     this.page = event;
     this.fetchcitydata();
@@ -425,7 +384,7 @@ this._cityservice.getonlycity().subscribe((response: any) => {
   // updatecitybutton(_id: string, city: any) {
   //   this.isaddbutton = false;
   //   this.isupdatebutton = true;
-  //   this.isDisabled = true;
+
 
   //   this.id = city._id;
   //   this.inputValue = city.city;
@@ -480,12 +439,12 @@ this._cityservice.getonlycity().subscribe((response: any) => {
   updatecitybutton(_id: string, city: any) {
     this.isaddbutton = false;
     this.isupdatebutton = true;
-    this.isDisabled = true;
-
+    this.isUpdateClicked = true;
     this.id = city._id;
     this.inputValue = city.city;
-    this.country = city.countrydata.countryname;
+    console.log(city);
 
+    this.countryName  = city.country_id;
     // Remove existing polygon if it exists
     if (this.polygon) {
       this.polygon.setMap(null);

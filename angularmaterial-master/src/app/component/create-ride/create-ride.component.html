@@ -17,12 +17,14 @@
               </mat-form-field>
               <mat-form-field class="mat-50">
                 <mat-label>Phone</mat-label>
-                <input matInput formControlName="phonenumber" type="number" (input)="searchphonenumber()" />
+                <!-- <input matInput formControlName="phonenumber" type="number" (input)="searchphonenumber()"  /> -->
+                <input matInput formControlName="phonenumber" type="number"  oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);"  />
               </mat-form-field>
               <mat-card-footer>
                 <div style="margin: 2%; text-align: right">
                   <!-- <button mat-raised-button type="submit" color="primary">Save</button> -->
-                  <button mat-raised-button color="warn" (click)="getdetails()" [disabled]="isButtonDisabled">
+                  <button mat-raised-button color="warn" (click)="getdetails()">
+                  <!-- <button mat-raised-button color="warn" (click)="getdetails()" [disabled]="isButtonDisabled"> -->
                     Getdetails
                   </button>
                 </div>
@@ -32,15 +34,15 @@
             <form [formGroup]="userdetailsform" *ngIf="isshow">
               <mat-form-field class="mat-10">
                 <mat-label>Name : </mat-label>
-                <input matInput formControlName="username" />
+                <input matInput formControlName="username"/>
               </mat-form-field>
               <mat-form-field class="mat-10">
-                <mat-label>Phone Number : </mat-label>
+                <mat-label>Phone Number :</mat-label>
                 <input matInput formControlName="userphonenumber" />
               </mat-form-field>
               <mat-form-field class="mat-10">
                 <mat-label>Email : </mat-label>
-                <input matInput formControlName="useremail" />
+                <input matInput formControlName="useremail"/>
               </mat-form-field>
               <mat-card-footer>
                 <div style="margin: 2%; text-align: right">
@@ -135,7 +137,7 @@
               </select>
             </a>
             <div class="d-flex gap-2">
-              <input type="date" class="form-control" formControlName="date" />
+              <input type="date" class="form-control" formControlName="date"  [min]="getFormattedDate()" />
               <input type="time" class="form-control" formControlName="time" />
             </div>
           </div>

@@ -58,7 +58,7 @@ export class CountryComponent {
 
 
     this.countryForm = this.formBuilder.group({
-      countryname:[{value:'',disabled:true} ,  Validators.required ,],
+      countryname:[{value:'',disabled:true} ,  Validators.required],
       countrytimezone: [{value:'',disabled:true} , Validators.required],
       countrycode:[{value:'',disabled:true}, Validators.required],
       countrycurrency:[{value:'',disabled:true}, Validators.required],
@@ -110,7 +110,7 @@ export class CountryComponent {
       // console.log(this.countrytimezone);
       this.countrycode = this.country[0].idd.root + this.country[0].idd.suffixes;
       // console.log(this.countrycode);
-      this.flag = this.country[0].flags.svg;
+      this.flag = this.country[0].flags.png;
       // console.log(this.flag);
       if (this.country[0].currencies) {
         const currencies = this.country[0].currencies;
@@ -158,22 +158,23 @@ export class CountryComponent {
 
     const formvalue = this.countryForm.value
     this.addcountrydata ={
-      countryname:formvalue.countryname,
-      countrycurrency :formvalue.countrycurrency,
-      countrytimezone:formvalue.countrytimezone,
-      countrycode:formvalue.countrycode,
-      flag:formvalue.flag
+      countryname:this.countryname,
+      countrycurrency : this.countrycurrency,
+      countrytimezone: this.countrytimezone,
+      countrycode: this.countrycode,
+      flag: this.flag
     }
 
     this._country.addcountry(this.addcountrydata).subscribe({
       next: (res: any) => {
         this.countrydatabasedata.push(res.countrydata);
         this.toster.success(res.message);
-        this.countryForm.reset()
+        this.countryForm.reset();
+        this.flag = "";
       },
       error: (error) => {
-        // console.log();
-        this.toster.warning(error.error.message);
+        console.log(error);
+        this.toster.error(error.error.message);
       },
     });
 

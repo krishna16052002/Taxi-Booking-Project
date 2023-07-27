@@ -1,8 +1,10 @@
 const express = require("express");
 const session = require("express-session")
+
 const app = express();
 const http = require('http').Server(app);
 // const io = require('socket.io')(http,{cors:{origin:['http://localhost:4200']}});
+
 const MogodbSession = require("connect-mongodb-session")(session);
 const admin = require("./models/admin");
 const cors = require("cors");
@@ -18,7 +20,9 @@ const pricingRouter = require("./routers/vehiclepricing")
 const settingRouter = require("./routers/setting");
 const createrideRouter = require("./routers/createride");
 const path = require('path');
-const initializeSocket = require("./routers/socket")
+const initializeSocket = require("./routers/socket");
+const settingModel = require("./models/setting");
+const { log } = require("console");
 
 
 require("./db/conn");
@@ -27,6 +31,7 @@ let Port = process.env.PORT || 8080;
 // app.use(session({secret: 'Your_Secret_Key', resave: false, saveUninitialized: false}))
 
 app.use(cors());
+
 // app.use(express.urlencoded({ extended: true }));
 // app.use(express.json());
 app.use("/admin", adminRouter);
@@ -38,6 +43,19 @@ app.use("", driverRouter);
 app.use("", pricingRouter);
 app.use("",settingRouter);
 app.use("", createrideRouter);
+
+// app.get("/setting", async (req, res) => {
+//   console.log("called");
+//   try {
+//     console.log("hi");
+//     const settingdata = await settingModel.find();
+//     console.log(settingdata);
+//     res.send({success : true, message : "settingdata" , settingdata });
+//   } catch (error) {
+//     res.send(error);
+//   }
+// })
+
 
 
 app.use(express.static(path.join(__dirname, '/public')));
@@ -51,6 +69,10 @@ app.use(express.json());
 initializeSocket(http);
 
 http.listen(Port, function () {
+  app.use((req, res, next) => {
+  // Call the additional router here
+  settingRouter(req,res,next)
+});
   // console.log(__dirname);
   console.log(`http://localhost:${Port}`);
 });

@@ -92,6 +92,7 @@ export class CreateRideComponent implements OnInit {
   starting: any;
   destination: any;
   destinationplacedata: any;
+  userdetails: any;
 
 
 
@@ -220,6 +221,7 @@ export class CreateRideComponent implements OnInit {
       this._cityServices.getonlycity().subscribe((response) => {
         this.citydata = response;
         console.log(this.citydata);
+        this.polygons = [];
         this.citydata.forEach((city: any) => {
           this.polygons.push(city.coordinates)
         })
@@ -292,11 +294,30 @@ export class CreateRideComponent implements OnInit {
             if (!this.isInZone) {
               this.toaster.error('Service is not available');
               this.initMap();
-              this.estimateTime = "";
-              this.estimateFare="";
 
             } else {
-              this.toaster.success("Service is available")
+              this.toaster.success("Service is available");
+
+              const matchedCity = this.citydata[this.cityIndex];
+              const cityId = matchedCity._id;
+              console.log("Matched City ID:", cityId);
+
+              this._createrideservice.checkvehiclepricing({ city_id: cityId }).subscribe({
+                next: (res: any) => {
+                  if (res.success == false) {
+                    this.toaster.error(res.message)
+                    this.getroutebutton = true;
+
+                  } else {
+                    this.toaster.info(res.message)
+                    this.getroutebutton = false;
+                  }
+                },
+                error: (error) => {
+                  console.error(error);
+                },
+              })
+
             }
           } else {
             alert('Select location from auto suggestion');
@@ -519,33 +540,65 @@ export class CreateRideComponent implements OnInit {
 
   }
 
-  searchphonenumber() {
-    this.isButtonDisabled = true;
-    this.getroutebutton = true;
-    // console.log(this.search);
-    const phoneNumber = this.createridesForm.get('phonenumber')?.value;
-    // console.log(phoneNumber);
+  // searchphonenumber() {
+  //   this.isButtonDisabled = true;
+  //   this.getroutebutton = true;
+  //   // console.log(this.search);
+  //   const phoneNumber = this.createridesForm.get('phonenumber')?.value;
+  //   // console.log(phoneNumber);
 
-    this.userdatabasedata.forEach((user: any) => {
-      if (user.userphonenumber == phoneNumber) {
-        this.phonenumber = user.userphonenumber;
-        this.user_id = user._id;
-        console.log(this.user_id);
+  //   this.userdatabasedata.forEach((user: any) => {
+  //     if (user.userphonenumber == phoneNumber) {
+  //       this.phonenumber = user.userphonenumber;
+  //       this.user_id = user._id;
+  //       console.log(this.user_id);
 
-        this.phonenumberdatachecked = true;
-        this.isButtonDisabled = false;
-        this.getroutebutton = false;
-        this.userdetailsform.patchValue({
-          username: user.username,
-          userphonenumber: user.userphonenumber,
-          useremail: user.useremail,
-        });
-      }
-    });
-  }
+  //       this.phonenumberdatachecked = true;
+  //       this.isButtonDisabled = false;
+  //       this.getroutebutton = false;
+  //       this.userdetailsform.patchValue({
+  //         username: user.username,
+  //         userphonenumber: user.userphonenumber,
+  //         useremail: user.useremail,
+  //       });
+  //     }
+  //   });
+  // }
 
   getdetails() {
-    this.isshow = true;
+    const formvalue = this.createridesForm.value;
+    const data = {
+      phonenumber: formvalue.countrycode + formvalue.phonenumber
+    }
+    console.log(data);
+
+
+    this._createrideservice.checkuserdetails(data).subscribe({
+      next: (res: any) => {
+        console.log(res)
+        if (res.success == true) {
+          this.toaster.success(res.message);
+          this.isshow = true;
+          this.userdetails = res.userdetails[0]
+          console.log(this.userdetails);
+          this.getroutebutton = false;
+          this.user_id = this.userdetails._id
+          this.userdetailsform.patchValue({
+            username: this.userdetails.username,
+            userphonenumber: this.userdetails.userphonenumber,
+            useremail: this.userdetails.useremail,
+          });
+
+        } else {
+          this.toaster.error(res.message);
+          this.getroutebutton = true;
+        }
+      },
+      error: (error: any) => {
+        console.log(error);
+        this.toaster.error(error.message);
+      },
+    });
   }
 
   next() {
@@ -595,7 +648,17 @@ export class CreateRideComponent implements OnInit {
     });
   }
 
+  getFormattedDate(): string {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+
 }
+
 
 
     // waypoint(val: any) {
