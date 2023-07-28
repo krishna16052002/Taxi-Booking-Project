@@ -93,7 +93,7 @@ router.patch('/city/:id', async(req,res)=>{
 router.get("/allcity", async (req, res) => {
   try {
     const citydata = await cityModel.find();
-    console.log(citydata);
+    // console.log(citydata);
     res.send(citydata);
   } catch (error) {
     res.send(error);

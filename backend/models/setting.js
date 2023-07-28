@@ -11,7 +11,9 @@ const settingSchema = new mongoose.Schema({
     assountsid:{},
     authtoken:{},
     emailusername :{},
-    emailpassword:{}
+    emailpassword:{},
+    secreatkey:{},
+    publickey:{}
 })
 
 const setting = mongoose.model('setting',settingSchema)

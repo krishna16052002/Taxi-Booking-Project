@@ -519,7 +519,7 @@ router.post('/createcustomerandaddcard/:id', async (req, res) => {
   });
 
   router.get('/get-card/:id', async (req, res) => {
-    
+    console.log(req.params.id);
   try {
     const id = req.params.id;
     const user = await userModel.findById(id);
@@ -527,7 +527,9 @@ router.post('/createcustomerandaddcard/:id', async (req, res) => {
       return res.status(400).json({ success:true , error: 'User does not have a Stripe customer ID' });
     }
     const customer = await stripe.customers.retrieve(user.customer_id);
-    const defaultCardId = customer.invoice_settings.default_payment_method;
+   
+   const  defaultCardId = customer.default_source;
+    console.log(defaultCardId);
     const paymentMethods = await stripe.paymentMethods.list({
       customer: user.customer_id,
       type: 'card',
@@ -535,10 +537,10 @@ router.post('/createcustomerandaddcard/:id', async (req, res) => {
     });
     const paymentMethodsData = paymentMethods.data.map((card) => ({
       ...card,
-      isdefalut : defaultCardId
+      isdefalut : card.id  == defaultCardId  
     }));
-    const defaultCard = paymentMethodsData.find((card) => card.isDefault);
-console.log(defaultCard , " defalutcadddddd");
+//     // const defaultCard = paymentMethodsData.find((card) => card.isDefault);
+// console.log(defaultCard , " defalutcadddddd");
     console.log(paymentMethodsData);
 
     res.json(paymentMethodsData);
@@ -559,14 +561,13 @@ router.delete('/deletecard/:id', async (req, res) => {
 });
 
 router.patch('/default-card/:customerId', async (req, res) => {
+
   try {
     const cardId = req.body.cardId;
     const customerId = req.params.customerId;
     console.log(cardId);
      await stripe.customers.update(customerId, {
-       invoice_settings: {
-         default_payment_method: cardId
-       }
+      default_source: cardId
      });
  
      res.status(200).json({ message: 'Default card set successfully' });
@@ -575,7 +576,6 @@ router.patch('/default-card/:customerId', async (req, res) => {
     res.status(400).json({ error: 'Failed to set default card' });
   }
 });
-
 
 
 

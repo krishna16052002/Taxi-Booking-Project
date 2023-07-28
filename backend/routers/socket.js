@@ -11,14 +11,18 @@ const { from } = require("nodemailer/lib/mime-node/le-windows");
 const cron = require('node-cron');
 const nodemailer = require("nodemailer");
 const settingModel = require("../models/setting");
+const userModel = require("../models/user")
+const STRIPE_SECRET_KEY="sk_test_51NTisDLigteWfcRny45x5AlKwqwtjLMkZEAdwNkYCVzPuqMzbIJc66gNtYqenVaVdBuiyyCY3u9e2joX9LHSdVpz002bL4TERD"
+const stripe = require('stripe')(STRIPE_SECRET_KEY)
 const twilio = require('twilio');
-  async function getTwilioCredentials() {
+async function getTwilioCredentials() {
   const setting = await settingModel.find()
-  accountSid=setting[0].assountsid;
-  authToken=setting[0].authtoken;
-  }
+  accountSid = setting[0].assountsid;
+  authToken = setting[0].authtoken;
+  driverrequest = setting[0].driverrequest;
+}
 
-  getTwilioCredentials();
+getTwilioCredentials();
 
 async function initializeSocket(server) {
   const io = socketIo(server, { cors: { origin: ['http://localhost:4200'] } });
@@ -145,10 +149,11 @@ async function initializeSocket(server) {
 
     // crone 
 
-    const job = cron.schedule('*/30 * * * * *', async () => {
+    const job = cron.schedule('* * * * * *', async () => {
 
       const ride = await createrideModel.find({ assigned: "assigning", status: 1, nearest: false });
-      const ridenearestdata = await createrideModel.find({ assigned: "assigning", status: 1, nearest: true });
+      const ridenearestdata = await createrideModel.find({ $and: [{ $or: [{ status: 1 }, { status: 9 }] }, { nearest: true }] });
+
       // console.log(ride , "rideeeeeeeeeeeeeeeeeeeeeeeeeeeee");  
       // console.log(ridenearestdata , "nearesttttttttttttttttttttttt");
       if (ride.length > 0) {
@@ -161,7 +166,7 @@ async function initializeSocket(server) {
             // console.log(currentTime.getTime());
             const elapsedTimeInSeconds = Math.floor((currentTime.getTime() - data.created) / 1000);
             console.log(elapsedTimeInSeconds);
-            if (elapsedTimeInSeconds >= 20) {
+            if (elapsedTimeInSeconds >= 10) {
               const result1 = await driverModel.findByIdAndUpdate(data.driver_id, { assign: "0" }, { new: true });
               io.emit('cronedata', result1);
 
@@ -185,7 +190,7 @@ async function initializeSocket(server) {
           // console.log(currentTime.getTime());
           const elapsedTimeInSeconds = Math.floor((currentTime.getTime() - data.created) / 1000);
           console.log(elapsedTimeInSeconds);
-          if (elapsedTimeInSeconds >= 20) {
+          if (elapsedTimeInSeconds >= 10) {
             const city_id = new mongoose.Types.ObjectId(data.city_id);
             const vehicle_id = new mongoose.Types.ObjectId(data.vehicle_id);
             const assigneddrivers = [...new Set(data.assigndriverarray)];
@@ -213,7 +218,7 @@ async function initializeSocket(server) {
               const driver = await driverModel.findByIdAndUpdate(randomObject._id, { assign: "1" }, { new: true });
               const driverdata = await driverModel.findByIdAndUpdate(data.driver_id, { assign: "0" }, { new: true });
 
-              const result = await createrideModel.findByIdAndUpdate(data._id, { $addToSet: { assigndriverarray: randomObject._id }, created: Date.now(), driver_id: randomObject._id }, { new: true });
+              const result = await createrideModel.findByIdAndUpdate(data._id, { $addToSet: { assigndriverarray: randomObject._id }, created: Date.now(), driver_id: randomObject._id, status: 1, assigned: "assigning" }, { new: true });
               // console.log(result);
               io.emit('afterselectdriver', driverdata, driver, result)
             }
@@ -232,15 +237,16 @@ async function initializeSocket(server) {
                   },
                 },
               ]);
-              
-            const assigndriverdatalist = await assigndriverdata.exec();
-              console.log(assigndriverdatalist);
-              if(assigndriverdatalist.length > 0){
-                console.log("called");
-                const result = await createrideModel.findByIdAndUpdate(data._id, { created: Date.now() , assigned: "hold", status: 9, driver_id: null }, { new: true });
-                io.emit('afternulldriverdata', result)
 
-              }else{
+              const assigndriverdatalist = await assigndriverdata.exec();
+              // console.log(assigndriverdatalist);
+              if (assigndriverdatalist.length > 0) {
+                // console.log("called");
+                const driverdata = await driverModel.findByIdAndUpdate(data.driver_id, { assign: "0" }, { new: true });
+                const result = await createrideModel.findByIdAndUpdate(data._id, { created: Date.now(), assigned: "hold", status: 9, driver_id: null }, { new: true });
+                io.emit('afternulldriverdata', driverdata ,result)
+
+              } else {
                 const driverdata = await driverModel.findByIdAndUpdate(data.driver_id, { assign: "0" }, { new: true });
                 const result = await createrideModel.findByIdAndUpdate(data._id, { created: Date.now(), assigndriverarray: [], nearest: false, assigned: "pending", status: 0, driver_id: null }, { new: true });
                 io.emit('afternulldriverdata', driverdata, result)
@@ -252,7 +258,7 @@ async function initializeSocket(server) {
               //   const driver = await driverModel.findByIdAndUpdate(data._id, { assign: "0" }, { new: true });
               //  }
 
-           
+
             }
           }
 
@@ -329,8 +335,8 @@ async function initializeSocket(server) {
         let runningrequest = createrideModel.aggregate([
           {
             $match: {
-              assigned: { $in: ["assigning", "accepted", "arrived", "picked", "started" , "hold"] },
-              status: { $in: [1, 3, 4, 5, 6 , 9 ] }
+              assigned: { $in: ["assigning", "accepted", "arrived", "picked", "started", "hold"] },
+              status: { $in: [1, 3, 4, 5, 6, 9] }
 
             },
           },
@@ -376,7 +382,10 @@ async function initializeSocket(server) {
             },
           },
           {
-            $unwind: "$driverdata",
+            $unwind: {
+              path: "$driverdata",
+              preserveNullAndEmptyArrays: true,
+            },
           }
         ]);
 
@@ -457,7 +466,7 @@ async function initializeSocket(server) {
       const ride_id = data.ride_id;
       const driver_id = data.driver_id;
       try {
-        const driver = await driverModel.findByIdAndUpdate(driver_id, { assign: "1" }, { new: true });
+        const driver = await driverModel.findByIdAndUpdate(driver_id, { assign: "2" }, { new: true });
         await driver.save();
         // console.log(driver);
         const ride = await createrideModel.findByIdAndUpdate(ride_id, { driver_id: driver_id, assigned: "accepted", status: 3 }, { new: true })
@@ -473,7 +482,7 @@ async function initializeSocket(server) {
     socket.on('arrived', async (data) => {
       const ride_id = data.ride_id;
       const driver_id = data.driver_id;
-      console.log(data);
+      // console.log(data);
       try {
         const ride = await createrideModel.findByIdAndUpdate(ride_id, { assigned: "arrived", status: 4 }, { new: true })
         await ride.save()
@@ -509,9 +518,6 @@ async function initializeSocket(server) {
       }
     })
 
-
-
-
     // ride complete 
 
     socket.on('Completed', async (data) => {
@@ -524,8 +530,31 @@ async function initializeSocket(server) {
         await driver.save();
         // console.log(driver);
         const ride = await createrideModel.findByIdAndUpdate(ride_id, { driver_id: driver_id, assigned: "completed", status: 7 }, { new: true })
-        await ride.save()
+        await ride.save();
+        const user = await userModel.findById(ride.user_id);
+        console.log(user.customer_id)
+        if (!user.customer_id) {
+          return res.status(400).json({ error: 'User does not have a Stripe customer ID' });
+        }
+        exchangeRate = 82
+        const customer = await stripe.customers.retrieve(user.customer_id);
+        // console.log(customer , "customerrrrrrrr");
+        const defaultCardId = customer.default_source;
+        // console.log(defaultCardId , "defaultcardddddddddddddddd");
+
+        const estimatePriceUSD = ride.estimatefare / exchangeRate;
+        const amountInCents = Math.round(estimatePriceUSD * 100);
+        const paymentIntent = await stripe.paymentIntents.create({
+          amount: amountInCents,
+          currency: 'usd',
+          customer: user.customer_id,
+          payment_method: defaultCardId,
+          off_session: true,
+          confirm: true
+        });
+
         io.emit('updateride', driver, ride);
+
         sendMail(ridedata);
         // sendmessage(ride.status);
       } catch (error) {
@@ -670,7 +699,7 @@ async function initializeSocket(server) {
         const pipeline = [
           {
             $match: {
-              status: { $in: [0 , 2 , 1] }
+              status: { $in: [0, 2, 1] }
             }
           },
           {
@@ -722,7 +751,7 @@ async function initializeSocket(server) {
           }
         ];
 
-      
+
         if (fromDate && toDate) {
           pipeline.push({
             $match: { date: { $gte: fromDate, $lte: toDate } }
@@ -1005,7 +1034,7 @@ function sendmessage(ride) {
   try {
     const client = twilio(accountSid, authToken);
     const message = client.messages.create({
-      body: ride==3?"driver accept request":(ride==6?"ride started" : " complete ride"),
+      body: ride == 3 ? "driver accept request" : (ride == 6 ? "ride started" : " complete ride"),
       from: '+14175052749',
       to: '+919484881886'
     });

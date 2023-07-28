@@ -240,7 +240,6 @@ router.post("/services/:id", async (req, res) => {
   } catch (error) {
     console.log(error);
     return res
-      .status(500)
       .send({ success: false, error, message: " not updated  " });
   }
 });

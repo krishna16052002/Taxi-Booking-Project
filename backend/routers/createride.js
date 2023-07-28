@@ -125,7 +125,7 @@ router.patch('/createride', async (req, res) => {
   const feedback = req.body.feedback
   try {
     const ride = await createrideModel.findByIdAndUpdate(id, {feedback:req.body.feedback} , { new: true })
-    console.log(ride);
+    // console.log(ride);
     await ride.save()
     res.send(ride)
   } catch (error) {

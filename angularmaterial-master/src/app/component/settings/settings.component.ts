@@ -41,8 +41,8 @@ export class SettingsComponent {
       authtoken : [''],
       emailusername:['',],
       emailpassword : [''],
-      public : [''],
-      secreat : ['']
+      publickey : [''],
+      secreatkey : ['']
 
     });
   }
@@ -51,6 +51,7 @@ export class SettingsComponent {
     this._settingService.getsetting().subscribe((Response) => {
       console.log(Response);
       this.settingdatabasedata = Response[0];
+      console.log(this.settingdatabasedata);
 
       this.settingForm.patchValue({
         maximumstop: this.settingdatabasedata.maximumstop,
@@ -59,8 +60,8 @@ export class SettingsComponent {
         authtoken :this.settingdatabasedata.authtoken,
         emailusername:this.settingdatabasedata.emailusername,
         emailpassword :this.settingdatabasedata.emailpassword,
-        // public: this.settingdatabasedata.publickey,
-        // secreat:this.settingForm.secreatkey
+        publickey: this.settingdatabasedata.publickey,
+        secreatkey:this.settingdatabasedata.secreatkey,
       });
     });
   }
@@ -82,6 +83,8 @@ export class SettingsComponent {
       this.settingForm.markAllAsTouched();
       return;
     }
+    console.log(this.locationvalue , this.driverrequestacceptvalue );
+
     const formValue = this.settingForm.value;
     const settingdata: any = {
       maximumstop: this.locationvalue,
@@ -89,7 +92,9 @@ export class SettingsComponent {
       assountsid: formValue.assountsid,
       authtoken: formValue.authtoken,
       emailpassword : formValue.emailpassword,
-      emailusername:formValue.emailusername
+      emailusername:formValue.emailusername,
+      publickey:formValue.publickey,
+      secreatkey:formValue.secreatkey
     };
 
     this._settingService.updatesetting(settingdata).subscribe({

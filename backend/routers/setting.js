@@ -10,64 +10,66 @@ const dotenv = require('dotenv');
 
 
 router.post("/setting", async (req, res) => {
-    try {
-        let settingdata;
-     
-        settingdata =  new settingModel({
-            maximumstop: req.body.maximumstop,
-            driverrequest: req.body.driverrequest
-        })
+  try {
+    let settingdata;
 
-        console.log(settingdata);
-       await settingdata.save();
-        res.send({
-            success: true,
-            settingdata,
-            message: "add setting successfully ",
-        });
-    } catch (error) {
-        console.log(error);
-        res.status(500).send({error,message:"please "})
-    }
+    settingdata = new settingModel({
+      maximumstop: req.body.maximumstop,
+      driverrequest: req.body.driverrequest
+    })
+
+    console.log(settingdata);
+    await settingdata.save();
+    res.send({
+      success: true,
+      settingdata,
+      message: "add setting successfully ",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ error, message: "please " })
+  }
 });
 
 
 // get data from database 
 
 router.get("/setting", async (req, res) => {
-    try {
+  try {
     // console.log("HI")
-      const settingdata = await settingModel.find();
-      // console.log(settingdata)
-      res.send(settingdata);
-    } catch (error) {
-      res.send(error);
-    }      
-  })
-  
-router.patch('/setting' , async(req,res)=>{
+    const settingdata = await settingModel.find();
+    // console.log(settingdata)
+    res.send(settingdata);
+  } catch (error) {
+    res.send(error);
+  }
+})
+
+router.patch('/setting', async (req, res) => {
   const id = "64941b14a958df739329717f"
-  console.log(id);
-  console.log(req.body);
+  // console.log(req.body);
+  try {
 
-  try{
+    dotenv.config(); 
+    process.env.MAXIMUMSTOP = req.body.maximumstop;
+    process.env.DRIVERREQUEST = req.body.driverrequest;
+    process.env.ACCOUNTSID = req.body.assountsid;
+    process.env.AUTHTOKEN = req.body.authtoken;
+    process.env.EMAILUSERNAME = req.body.emailusername;
+    process.env.EMAILPASSWORD = req.body.emailpassword;
+    process.env.STRIPEPUBLICKEY = req.body.publickey;
+    process.env.STRIPESECREATKEY = req.body.secreatkey
+    const envData = `AUTHTOKEN=${process.env.AUTHTOKEN}\nACCOUNTSID=${process.env.ACCOUNTSID}\nEMAILUSERNAME=${process.env.EMAILUSERNAME}\nEMAILPASSWORD=${process.env.EMAILPASSWORD}\nSTRIPEPUBLICKEY=${process.env.STRIPEPUBLICKEY}\nSTRIPESECREATKEY=${process.env.STRIPESECREATKEY}\nMAXIMUMSTOP=${process.env.MAXIMUMSTOP}\nDRIVERREQUEST=${process.env.DRIVERREQUEST}`;
 
-    dotenv.config(); // Load the current .env file
-        process.env.ACCOUNTSID = req.body.assountsid;
-        process.env.AUTHTOKEN = req.body.authtoken;
-        process.env.EMAILUSERNAME = req.body.emailusername;
-        process.env.EMAILPASSWORD = req.body.emailpassword;
-        const envData = `AUTHTOKEN=${process.env.AUTHTOKEN}\nACCOUNTSID=${process.env.ACCOUNTSID}\nEMAILUSERNAME=${process.env.EMAILUSERNAME}\nEMAILPASSWORD=${process.env.EMAILPASSWORD}`;
-        
 
     fs.writeFileSync('.env', envData, 'utf8');
 
-   const updatesetting = await settingModel.findByIdAndUpdate(id , req.body , {new:true});
-   await updatesetting.save();
-   res.send({success:true, updatesetting ,  message:"update setting successfully"});
-  }catch(error){
+    const updatesetting = await settingModel.findByIdAndUpdate(id, req.body, { new: true });
+    await updatesetting.save();
+    res.send({ success: true, updatesetting, message: "update setting successfully" });
+  } catch (error) {
     console.log(error);
-    res.send({success:false , message:"update setting not success"});
+    res.send({ success: false, message: "update setting not success" });
   }
 })
 

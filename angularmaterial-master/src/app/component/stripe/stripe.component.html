@@ -67,7 +67,7 @@
             <div>
               <button   class="btn btn-" *ngIf="card.id == defalutcard" >defalut</button>
             </div> -->
-          
+
           <!-- <div class="form-check ms-3" *ngIf="card.id != defaultcardid">
             <input class="form-check-input" type="radio" name="notsetDefaultCard" [value]="card.id" (change)="SetDefault(card.customer, card.id)" >
 
@@ -76,7 +76,8 @@
           <div class="form-check ms-3" *ngIf="card.id == defaultcardid">
             <input class="form-check-input" type="radio" name="setDefaultCard" [value]="card.id" checked>
           </div> -->
-
+          <button mat-raised-button *ngIf="card.isdefalut==true" color="primary" style="height: 20px;">Default</button>
+         <button mat-raised-button *ngIf="card.isdefalut==false" (click)="SetDefault(card.customer, card.id)"  color="warn" style="height: 20px;">Set Default</button>
         </div>
       </div>
     </div>

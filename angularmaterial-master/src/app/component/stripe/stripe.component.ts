@@ -23,6 +23,8 @@ export class StripeComponent {
   userid: any;
   userdata: any;
   carddata: any;
+  isDefault: any;
+
 
   constructor(public dialogRef: MatDialogRef<StripeComponent>,
     @Inject(MAT_DIALOG_DATA) public data: userdata, private http: HttpClient, private toster: ToastrService , private _stripeService : StripeService) { }
@@ -47,21 +49,13 @@ export class StripeComponent {
 
 
   }
-
-  isButtonDefault(): boolean {
-    return true;
-  }
-
-  toggleDefault(): void {
-    // Replace this logic with your actual logic to toggle the default state of the button
-    // For example, you can use a boolean property or a service to store this information
-    // Here, I'm assuming you are flipping the state between default and non-default on each click
-    const currentDefaultState = this.isButtonDefault();
-    // Replace this with your actual logic to set the button state (true or false)
-    // For example: this.isButtonDefault() = !this.isButtonDefault();
-  }
+  // setDefault() {
+  //   this.isDefault = !this.isDefault;
+  // }
 
   async addCard(id: any) {
+    console.log(id);
+
       const paymentMethod = await this.stripe.createToken(
         this.cardElement,
       );
@@ -85,12 +79,17 @@ export class StripeComponent {
     this._stripeService.getcard(id).subscribe({
       next: (res: any) => {
         this.carddata = res;
+        console.log(this.carddata);
+
+
       },
       error: (error) => {
         console.log(error);
       }
     })
   }
+
+
 
  deleteCard(id: any) {
   console.log(id); //  get a card id
@@ -116,7 +115,7 @@ export class StripeComponent {
       .subscribe(
         (data:any) => {
           console.log(data);
-          this.selectddefaultid = cardId;
+          this.isDefault = cardId;
            this.getCard(this.userid)
         },
         (error:any) => {

@@ -81,14 +81,6 @@
          >Please Enter Valid Phonenumber</div>
       </div>
       <div class="mb-3">
-        <label class="form-label d-flex justify-content-start">Country Code :</label>
-        <input type="text" class="form-control" formControlName="drivercountrycode"  [value]="'drivercountrycode'" />
-      </div>
-      <div *ngIf="driverForm.get('drivercountrycode')?.invalid && (driverForm.get('drivercountrycode')?.dirty || driverForm.get('drivercountrycode')?.touched)">
-        <div [hidden]="!driverForm.get('drivercountrycode')?.errors?.['required']" class="text-danger"
-       >Country Code is Required</div>
-      </div>
-      <div class="mb-3">
         <label class="form-label d-flex justify-content-start" for="country">Country
           :</label>
         <div class="dropdown">
@@ -105,6 +97,15 @@
         <div [hidden]="!driverForm.get('country_id')?.errors?.['required']" class="text-danger"
          >Country is Required</div>
       </div>
+      <div class="mb-3">
+        <label class="form-label d-flex justify-content-start">Country Code :</label>
+        <input type="text" class="form-control" formControlName="drivercountrycode"  [value]="'drivercountrycode'" />
+      </div>
+      <div *ngIf="driverForm.get('drivercountrycode')?.invalid && (driverForm.get('drivercountrycode')?.dirty || driverForm.get('drivercountrycode')?.touched)">
+        <div [hidden]="!driverForm.get('drivercountrycode')?.errors?.['required']" class="text-danger"
+       >Country Code is Required</div>
+      </div>
+
       <div class="mb-3">
         <label class="form-label d-flex justify-content-start" for="drivercity">City
           :</label>
@@ -223,3 +224,10 @@ let i = index
 
 
 
+
+
+
+  <!-- <ng-container matColumnDef="driver">
+    <th mat-header-cell *matHeaderCellDef>DRIVER</th>
+    <td mat-cell *matCellDef="let ride">{{ ride.driverdata?.drivername? ride.driverdata?.drivername : " null" }} </td>
+  </ng-container> -->
