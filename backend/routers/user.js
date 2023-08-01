@@ -507,6 +507,7 @@ router.post('/createcustomerandaddcard/:id', async (req, res) => {
       user.customer_id = customer.id;
       await user.save();
     }
+    console.log(req.body.token.id);
     const card = await stripe.customers.createSource(user.customer_id, {
       source: `${req.body.token.id}`
   });

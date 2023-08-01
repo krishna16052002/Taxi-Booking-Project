@@ -53,4 +53,10 @@ export class CreaterideService {
 
   //   return this.http.get<any>( 'http://localhost:8080/createride' ,  queryParams );
   // }
+
+
+
+getdowloadcsvalldata(){
+  return this.http.get<any>("http://localhost:8080/downloadcsv")
+  }
 }

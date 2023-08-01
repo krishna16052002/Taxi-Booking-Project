@@ -124,14 +124,81 @@ router.patch('/createride', async (req, res) => {
   console.log(req.body);
   const feedback = req.body.feedback
   try {
-    const ride = await createrideModel.findByIdAndUpdate(id, {feedback:req.body.feedback} , { new: true })
+    const ride = await createrideModel.findById(id)
+    console.log(ride);
+    // const ride = await createrideModel.findByIdAndUpdate(id, {feedback:req.body.feedback} , { new: true })
     // console.log(ride);
+    ride.feedback = req.body.feedback
     await ride.save()
     res.send(ride)
   } catch (error) {
-    console.log(error);
+    // console.log(error);
     res.send(error)
   }
+})
+
+router.get("/downloadcsv", async (req, res) => {
+  try {
+    // const citydata = await cityModel.find();
+    const createride = await createrideModel.aggregate([
+      {
+        $lookup: {
+          from: 'users',
+          foreignField: '_id',
+          localField: 'user_id',
+          as: 'usersdata'
+        }
+      },
+      {
+        $lookup: {
+          from: 'cities',
+          foreignField: '_id',
+          localField: 'city_id',
+          as: 'citydata'
+        }
+      },
+      {
+        $lookup: {
+          from: 'vehicles',
+          foreignField: '_id',
+          localField: 'vehicle_id',
+          as: 'vehicledata'
+        }
+      },
+      {
+        $lookup: {
+          from: 'drivers',
+          foreignField: '_id',
+          localField: 'driver_id',
+          as: 'driverdata'
+        }
+      },
+      {
+        $unwind: '$usersdata'
+      },
+      {
+        $unwind: '$citydata'
+      },
+      {
+        $unwind: '$vehicledata'
+      },
+      {
+        $unwind: {
+          path: "$driverdata",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $match: {
+          status : {$in :[7 , 8]},
+        }
+      }
+    ]) 
+    // console.log(createride);
+    res.send(createride);
+  } catch (error) {
+    res.send(error);
+  }      
 })
 
 module.exports = router;

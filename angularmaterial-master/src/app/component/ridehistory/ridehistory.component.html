@@ -91,5 +91,7 @@
   </table>
 </div>
 
-<div><button mat-raised-button  color="primary" *ngIf="ridehistory" (click)="downloadCsv(ridehistory)">Download CSV</button></div>
+<div><button mat-raised-button  color="primary" *ngIf="ridehistory" (click)="downloadCsv(ridehistory)" style="margin-right: 15px;"> Filter Download CSV</button>
+<button mat-raised-button  color="primary" (click)="downloadfulldataCsv()">  Download CSV</button></div>
+
 

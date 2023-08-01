@@ -38,7 +38,7 @@
       <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
     </table>
     <div  *ngIf="drivers">
-    <button mat-raised-button class="bg-dark text-white"  (click)="assignnearestdriver()">
+    <button mat-raised-button class="bg-dark text-white"  (click)="assignnearestdriver(); closeDialog()">
       Assign Nearest Driver
      </button>
     </div>

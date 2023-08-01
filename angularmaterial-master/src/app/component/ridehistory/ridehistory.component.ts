@@ -7,6 +7,7 @@ import { saveAs } from 'file-saver';
 import * as Papa from 'papaparse';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { VehicleService } from 'src/app/service/vehicle.service';
+import { CreaterideService } from 'src/app/service/createride.service';
 @Component({
   selector: 'app-ridehistory',
   templateUrl: './ridehistory.component.html',
@@ -36,8 +37,9 @@ export class RidehistoryComponent {
   vehicle: any;
   vehicledata: any;
   vehiclename: any;
+  ridehistorycsvdata: any;
   constructor(public dialog: MatDialog,
-    private _socketservice: SocketService, private formBuilder: FormBuilder, private _vehicle: VehicleService,) { }
+    private _socketservice: SocketService, private formBuilder: FormBuilder, private _vehicle: VehicleService,private _createrideservices : CreaterideService) { }
 
   ngOnInit() {
     this.searchForm = this.formBuilder.group({
@@ -61,6 +63,11 @@ export class RidehistoryComponent {
       this.vehicledata = res;
       console.log(this.vehicledata);
     });
+
+    this._createrideservices.getdowloadcsvalldata().subscribe((res:any)=>{
+      this.ridehistorycsvdata = res
+
+    })
   }
 
   ridehistorydata() {
@@ -107,6 +114,8 @@ export class RidehistoryComponent {
   }
 
   convertToCsv(data: any[]): string {
+    console.log(data , );
+
     const csv = Papa.unparse(data);
     return csv;
   }
@@ -180,6 +189,42 @@ export class RidehistoryComponent {
     }
 
     this._socketservice.emitridehistory({data : data})
+  }
+
+
+
+  downloadfulldataCsv(){
+
+    console.log(this.ridehistorycsvdata);
+    const mappedData = this.ridehistorycsvdata.map((ride: any) => {
+      console.log(ride);
+
+      return {
+        REQUEST_ID: ride._id,
+        USER_ID: ride.usersdata._id,
+        VEHICLE_ID: ride.vehicledata._id,
+        USER_NAME: ride.usersdata.username,
+        USER_EMAIL: ride.usersdata.useremail,
+        USER_PHONENUMBER: ride.usersdata.userphonenumber,
+        SERVICE_TYPE: ride.vehicledata.vehiclename,
+        STATUS: ride.assigned,
+        PICKUP_LOCATION: ride.startlocation,
+        DESTINATION_LOCATION: ride.destinationlocation,
+        PAYMENT_OPTION: ride.paymentoption,
+        CREATED: ride.created,
+        DATE: ride.date,
+        DRIVER_ID: ride.driver_id,
+        FARE: ride.estimatefare,
+        ESTIMATETIME: ride.estimatetime,
+        TIME: ride.time,
+        DISTANCE: ride.totaldistance,
+      };
+
+    });
+
+    const csvData = this.convertToCsv(mappedData);
+    const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8' });
+    saveAs(blob, 'RIDE_HISTORY.csv');
   }
 
 }
