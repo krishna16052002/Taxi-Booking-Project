@@ -64,7 +64,7 @@ export class SocketService {
   // emit the assign driver
 
   assigndriver(data: any) {
-    console.log(data);
+    // console.log(data);
     this.socket.emit('assigndriver', data);
   }
 
@@ -131,6 +131,8 @@ export class SocketService {
 
   //  emit the ridehistorydata
   emitridehistory(data: any) {
+    // console.log(data);
+
     this.socket.emit('ridehistory', data);
   }
 

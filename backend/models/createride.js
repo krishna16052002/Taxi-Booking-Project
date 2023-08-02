@@ -58,6 +58,10 @@ const createrideSchema = mongoose.Schema(
     feedback:{
       type:String,
       default:"",
+    },
+    notification:{
+      type:Boolean ,
+      defalut:false
     }
   }
 );

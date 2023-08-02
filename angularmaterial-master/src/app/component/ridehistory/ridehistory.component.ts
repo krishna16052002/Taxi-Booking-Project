@@ -11,11 +11,11 @@ import { CreaterideService } from 'src/app/service/createride.service';
 @Component({
   selector: 'app-ridehistory',
   templateUrl: './ridehistory.component.html',
-  styleUrls: ['./ridehistory.component.css']
+  styleUrls: ['./ridehistory.component.css'],
 })
 export class RidehistoryComponent {
   searchForm!: FormGroup;
-  data: any
+  data: any;
   ridedata: any;
   runningrequestdata: any;
   ridehistory: any;
@@ -28,9 +28,8 @@ export class RidehistoryComponent {
     'destinationLocation',
     'service',
     'payment',
-    'status'
+    'status',
   ];
-
 
   ride: any;
   private _id: any;
@@ -38,8 +37,14 @@ export class RidehistoryComponent {
   vehicledata: any;
   vehiclename: any;
   ridehistorycsvdata: any;
-  constructor(public dialog: MatDialog,
-    private _socketservice: SocketService, private formBuilder: FormBuilder, private _vehicle: VehicleService,private _createrideservices : CreaterideService) { }
+  getridehistorydata: any;
+  constructor(
+    public dialog: MatDialog,
+    private _socketservice: SocketService,
+    private formBuilder: FormBuilder,
+    private _vehicle: VehicleService,
+    private _createrideservices: CreaterideService
+  ) { }
 
   ngOnInit() {
     this.searchForm = this.formBuilder.group({
@@ -49,49 +54,49 @@ export class RidehistoryComponent {
       todate: [''],
       pickupLocation: [''],
       dropoffLocation: [''],
-      status:['']
+      status: [''],
     });
     this.ridehistorydata();
     this.aftercancelride();
     const formData = this.searchForm.value;
-    console.log(formData);
-    this._socketservice.emitridehistory({ data: formData })
+    // console.log(formData);
+    this._socketservice.emitridehistory({ data: formData });
+    this._createrideservices.ridehistory({ data: formData }).subscribe((res) => {
+        this.getridehistorydata = res;
+        // console.log(res);
 
-
+      });
 
     this._vehicle.getvehicledata().subscribe((res) => {
       this.vehicledata = res;
-      console.log(this.vehicledata);
+      // console.log(this.vehicledata);
     });
 
-    this._createrideservices.getdowloadcsvalldata().subscribe((res:any)=>{
-      this.ridehistorycsvdata = res
-
-    })
+    this._createrideservices.getdowloadcsvalldata().subscribe((res: any) => {
+      this.ridehistorycsvdata = res;
+    });
   }
 
   ridehistorydata() {
     this._socketservice.onridehistory('ridehistory').subscribe((data: any) => {
       this.ridedata = data;
-      console.log(this.ridedata);
-      this.ridehistory = this.ridedata.ridehistorydata
-      console.log(this.ridehistory);
-
+      // console.log(this.ridedata);
+      this.ridehistory = this.ridedata.ridehistorydata;
+      // console.log(this.ridehistory);
     });
   }
 
   aftercancelride() {
     this._socketservice.oncancelride('cancelride').subscribe((data: any) => {
-      this._socketservice.emitridehistory({ data: this.data })
+      this._socketservice.emitridehistory({ data: this.data });
       this.ridehistorydata();
     });
   }
 
-
   openDialog(val: any) {
     console.log(val);
     // console.log(val._id);
-    this._id = val._id
+    this._id = val._id;
 
     const dialogData: Ridedata = {
       ridedata: val,
@@ -114,7 +119,7 @@ export class RidehistoryComponent {
   }
 
   convertToCsv(data: any[]): string {
-    console.log(data , );
+    console.log(data);
 
     const csv = Papa.unparse(data);
     return csv;
@@ -153,7 +158,6 @@ export class RidehistoryComponent {
     saveAs(blob, 'RIDE_HISTORY.csv');
   }
 
-
   onSelectedvehicle(value: string): void {
     this.vehicle = value;
     console.log(this.vehicle);
@@ -171,30 +175,32 @@ export class RidehistoryComponent {
     console.log(formData);
     // console.log('hello');
 
-    this._socketservice.emitridehistory({ data: formData })
+    this._createrideservices
+    .ridehistory({ data: formData })
+    .subscribe((res) => {
+      this.getridehistorydata = res;
+      console.log(res);
 
+    });
 
+    this._socketservice.emitridehistory({ data: formData });
     // Perform further actions, such as filtering data based on form values
   }
 
   clearfilter() {
-
     const data = {
       vehicle_id: '',
       cashCard: '',
       fromdate: '',
       todate: '',
       pickupLocation: '',
-      dropoffLocation: ''
-    }
+      dropoffLocation: '',
+    };
 
-    this._socketservice.emitridehistory({data : data})
+    this._socketservice.emitridehistory({ data: data });
   }
 
-
-
-  downloadfulldataCsv(){
-
+  downloadfulldataCsv() {
     console.log(this.ridehistorycsvdata);
     const mappedData = this.ridehistorycsvdata.map((ride: any) => {
       console.log(ride);
@@ -219,12 +225,10 @@ export class RidehistoryComponent {
         TIME: ride.time,
         DISTANCE: ride.totaldistance,
       };
-
     });
 
     const csvData = this.convertToCsv(mappedData);
     const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8' });
     saveAs(blob, 'RIDE_HISTORY.csv');
   }
-
 }

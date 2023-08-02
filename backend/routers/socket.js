@@ -165,13 +165,13 @@ async function initializeSocket(server) {
             const currentTime = new Date();
             // console.log(currentTime.getTime());
             const elapsedTimeInSeconds = Math.floor((currentTime.getTime() - data.created) / 1000);
-            console.log(elapsedTimeInSeconds);
+            // console.log(elapsedTimeInSeconds);
             if (elapsedTimeInSeconds >= 30) {
               const result1 = await driverModel.findByIdAndUpdate(data.driver_id, { assign: "0" }, { new: true });
               io.emit('cronedata', result1);
 
 
-              const result = await createrideModel.findByIdAndUpdate(data._id, { driver_id: null, assigned: "pending", status: 0 }, { new: true });
+              const result = await createrideModel.findByIdAndUpdate(data._id, { driver_id: null, assigned: "pending", status: 0  , notification : true }, { new: true });
               io.emit('riderejected', result);
               io.emit('cronedata', result);
 
@@ -187,7 +187,7 @@ async function initializeSocket(server) {
         for (const data of ridenearestdata) {
           const currentTime = new Date();
           const elapsedTimeInSeconds = Math.floor((currentTime.getTime() - data.created) / 1000);
-          console.log(elapsedTimeInSeconds);
+          // console.log(elapsedTimeInSeconds);
           if (elapsedTimeInSeconds >= 30) {
             const city_id = new mongoose.Types.ObjectId(data.city_id);
             const vehicle_id = new mongoose.Types.ObjectId(data.vehicle_id);
@@ -243,7 +243,7 @@ async function initializeSocket(server) {
 
               } else {
                 const driverdata = await driverModel.findByIdAndUpdate(data.driver_id, { assign: "0" }, { new: true });
-                const result = await createrideModel.findByIdAndUpdate(data._id, { created: Date.now(), nearest: false, assigned: "pending", status: 0, driver_id: null , assigndriverarray : [] }, { new: true });
+                const result = await createrideModel.findByIdAndUpdate(data._id, { created: Date.now(), nearest: false, assigned: "pending", status: 0, driver_id: null , assigndriverarray : [] , notification : true }, { new: true });
                 io.emit('afternulldriverdata', driverdata, result)
               }
             }
@@ -532,7 +532,7 @@ async function initializeSocket(server) {
               },
             ]);
             const rejecrtedridedata = await assigndriverdata.exec();
-            console.log(rejecrtedridedata , "data");
+            // console.log(rejecrtedridedata , "data");
             if(rejecrtedridedata.length > 0){
               const driverdata = await driverModel.findByIdAndUpdate(driver_id, { assign: "0" }, { new: true });
               const result = await createrideModel.findByIdAndUpdate(ride_id, { created: Date.now(), assigned: "hold", status: 9, driver_id: null }, { new: true });
@@ -637,6 +637,7 @@ async function initializeSocket(server) {
       const driver_id = data.driver_id;
       // console.log(data , " complted data ");
       const ridedata = data.ridedata;
+     
       try {
         const driver = await driverModel.findByIdAndUpdate(driver_id, { assign: "0" }, { new: true });
         await driver.save();
@@ -644,11 +645,13 @@ async function initializeSocket(server) {
         const ride = await createrideModel.findByIdAndUpdate(ride_id, { driver_id: driver_id, assigned: "completed", status: 7 }, { new: true })
         await ride.save();
         const user = await userModel.findById(ride.user_id);
-        console.log(user.customer_id)
+        // console.log(user.customer_id)
         if (!user.customer_id) {
           return res.status(400).json({ error: 'User does not have a Stripe customer ID' });
         }
-        exchangeRate = 82
+        if(ride.paymentoption == "card"){
+          // console.log("called");
+         exchangeRate = 82
         const customer = await stripe.customers.retrieve(user.customer_id);
         // console.log(customer , "customerrrrrrrr");
         const defaultCardId = customer.default_source;
@@ -664,6 +667,8 @@ async function initializeSocket(server) {
           off_session: true,
           confirm: true
         });
+        }
+       
 
         io.emit('updateride', driver, ride);
 

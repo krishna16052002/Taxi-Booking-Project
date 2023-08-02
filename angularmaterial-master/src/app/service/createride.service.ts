@@ -59,4 +59,21 @@ export class CreaterideService {
 getdowloadcsvalldata(){
   return this.http.get<any>("http://localhost:8080/downloadcsv")
   }
+
+
+  ridehistory(data:any): Observable<any> {
+// console.log(data);
+
+
+    const params = {
+      cashCard: data.data.cashCard,
+      dropoffLocation:data.data.dropoffLocation,
+      pickupLocation:data.data.pickupLocation,
+      fromdate:data.data.fromdate,
+      todate:data.data.todate,
+      status:data.data.status,
+      vehicle_id:data.data.vehicle_id,
+    };
+  return this.http.get(`http://localhost:8080/ridehistory`, {params});
+}
 }
