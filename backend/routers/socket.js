@@ -164,16 +164,15 @@ async function initializeSocket(server) {
             // console.log('Cron job started.');
             const currentTime = new Date();
             // console.log(currentTime.getTime());
-            const elapsedTimeInSeconds = Math.floor((currentTime.getTime() - data.created) / 1000);
-            // console.log(elapsedTimeInSeconds);
-            if (elapsedTimeInSeconds >= 30) {
-              const result1 = await driverModel.findByIdAndUpdate(data.driver_id, { assign: "0" }, { new: true });
-              io.emit('cronedata', result1);
+            const time = Math.floor((currentTime.getTime() - data.created) / 1000);
+            if (time >= 30) {
+              const driverdataa = await driverModel.findByIdAndUpdate(data.driver_id, { assign: "0" }, { new: true });
+              io.emit('cronedata', driverdataa);
 
 
-              const result = await createrideModel.findByIdAndUpdate(data._id, { driver_id: null, assigned: "pending", status: 0  , notification : true }, { new: true });
-              io.emit('riderejected', result);
-              io.emit('cronedata', result);
+              const ridedataa = await createrideModel.findByIdAndUpdate(data._id, { driver_id: null, assigned: "pending", status: 0  , notification : true }, { new: true });
+              io.emit('riderejected', ridedataa);
+              io.emit('cronedata', ridedataa);
 
               // console.log('Cron job ended.');
 
@@ -186,12 +185,12 @@ async function initializeSocket(server) {
       if (ridenearestdata.length > 0) {
         for (const data of ridenearestdata) {
           const currentTime = new Date();
-          const elapsedTimeInSeconds = Math.floor((currentTime.getTime() - data.created) / 1000);
-          // console.log(elapsedTimeInSeconds);
-          if (elapsedTimeInSeconds >= 30) {
+          const time = Math.floor((currentTime.getTime() - data.created) / 1000);
+      
+          if (time >= 30) {
             const city_id = new mongoose.Types.ObjectId(data.city_id);
             const vehicle_id = new mongoose.Types.ObjectId(data.vehicle_id);
-            const assigneddrivers = [...new Set(data.assigndriverarray)];
+            const driverarray = data.assigndriverarray
             let alldrivers = driverModel.aggregate([
               {
                 $match: {
@@ -199,7 +198,7 @@ async function initializeSocket(server) {
                   city_id: city_id,
                   assignService: vehicle_id,
                   assign: "0",
-                  _id: { $nin: assigneddrivers }
+                  _id: { $nin: driverarray }
                 },
               },
             ]);
@@ -216,8 +215,8 @@ async function initializeSocket(server) {
               const driverdata = await driverModel.findByIdAndUpdate(data.driver_id, { assign: "0" }, { new: true });
               const driver = await driverModel.findByIdAndUpdate(randomObject._id, { assign: "1" }, { new: true });
 
-              const result = await createrideModel.findByIdAndUpdate(data._id, { $addToSet: { assigndriverarray: randomObject._id }, created: Date.now(), driver_id: randomObject._id, status: 1, assigned: "assigning"  }, { new: true });
-              io.emit('afterselectdriver', driverdata, driver, result)
+              const rideresult = await createrideModel.findByIdAndUpdate(data._id, { $addToSet: { assigndriverarray: randomObject._id }, created: Date.now(), driver_id: randomObject._id, status: 1, assigned: "assigning"  }, { new: true });
+              io.emit('afterselectdriver', driverdata, driver, rideresult)
             }
             else {
               const city_id = new mongoose.Types.ObjectId(data.city_id);
@@ -230,7 +229,7 @@ async function initializeSocket(server) {
                     city_id: city_id,
                     assignService: vehicle_id,
                     assign: "1",
-                    _id: { $nin: assigneddrivers }
+                    _id: { $nin: driverarray }
                   },
                 },
               ]);
@@ -238,13 +237,13 @@ async function initializeSocket(server) {
               const assigndriverdatalist = await assigndriverdata.exec();
               if (assigndriverdatalist.length > 0) {
                 const driverdata = await driverModel.findByIdAndUpdate(data.driver_id, { assign: "0" }, { new: true });
-                const result = await createrideModel.findByIdAndUpdate(data._id, { created: Date.now(), assigned: "hold", status: 9, driver_id: null }, { new: true });
-                io.emit('afternulldriverdata', driverdata ,result)
+                const rideresult = await createrideModel.findByIdAndUpdate(data._id, { created: Date.now(), assigned: "hold", status: 9, driver_id: null }, { new: true });
+                io.emit('afternulldriverdata', driverdata ,rideresult)
 
               } else {
                 const driverdata = await driverModel.findByIdAndUpdate(data.driver_id, { assign: "0" }, { new: true });
-                const result = await createrideModel.findByIdAndUpdate(data._id, { created: Date.now(), nearest: false, assigned: "pending", status: 0, driver_id: null , assigndriverarray : [] , notification : true }, { new: true });
-                io.emit('afternulldriverdata', driverdata, result)
+                const rideresult = await createrideModel.findByIdAndUpdate(data._id, { created: Date.now(), nearest: false, assigned: "pending", status: 0, driver_id: null , assigndriverarray : [] , notification : true }, { new: true });
+                io.emit('afternulldriverdata', driverdata, rideresult)
               }
             }
           }
@@ -253,109 +252,6 @@ async function initializeSocket(server) {
         }
       }
     })
-
-
-    // const job = cron.schedule('*/30 * * * * *', async () => {
-    //   const ride = await createrideModel.find({ assigned: "assigning", status: 1, nearest: false });
-    //   const ridenearestdata = await createrideModel.find({ $and: [{ $or: [{ status: 1 }, { status: 9 }] }, { nearest: true }] });
-    
-    //   if (ride.length > 0) {
-    //     for (const data of ride) {
-    //       if (data.created) {
-    //         const currentTime = new Date();
-    //         const elapsedTimeInSeconds = Math.floor((currentTime.getTime() - data.created) / 1000);
-    //         console.log(elapsedTimeInSeconds);
-    
-    //         if (elapsedTimeInSeconds >= 30) {
-    //           const result1 = await driverModel.findByIdAndUpdate(data.driver_id, { assign: "0" }, { new: true });
-    //           io.emit('cronedata', result1);
-    
-    //           const result = await createrideModel.findByIdAndUpdate(data._id, { driver_id: null, assigned: "pending", status: 0 }, { new: true });
-    //           io.emit('riderejected', result);
-    //           io.emit('cronedata', result);
-    //         }
-    //       }
-    //     }
-    //   }
-    
-    //   if (ridenearestdata.length > 0) {
-    //     for (const data of ridenearestdata) {
-    //       const currentTime = new Date();
-    //       const elapsedTimeInSeconds = Math.floor((currentTime.getTime() - data.created) / 1000);
-    //       console.log(elapsedTimeInSeconds);
-    
-    //       if (elapsedTimeInSeconds >= 30) {
-    //         const city_id = new mongoose.Types.ObjectId(data.city_id);
-    //         const vehicle_id = new mongoose.Types.ObjectId(data.vehicle_id);
-    //         const assigneddrivers = [...new Set(data.assigndriverarray)];
-    
-    //         const filter = {
-    //           status: true,
-    //           city_id: city_id,
-    //           assignService: vehicle_id,
-    //           assign: "0",
-    //           _id: { $nin: assigneddrivers }
-    //         };
-    
-    //         let alldrivers = driverModel.find(filter);
-    
-    //         const pendingdriver = await alldrivers.exec();
-    
-    //         if (pendingdriver.length > 0) {
-    //           const randomIndex = Math.floor(Math.random() * pendingdriver.length);
-    //           const randomObject = pendingdriver[randomIndex];
-    //           const driver = await driverModel.findByIdAndUpdate(randomObject._id, { assign: "1" }, { new: true });
-    //           const driverdata = await driverModel.findByIdAndUpdate(data.driver_id, { assign: "0" }, { new: true });
-    
-    //           const result = await createrideModel.findByIdAndUpdate(data._id, {
-    //             $addToSet: { assigndriverarray: randomObject._id },
-    //             created: Date.now(),
-    //             driver_id: randomObject._id,
-    //             status: 1,
-    //             assigned: "assigning"
-    //           }, { new: true });
-    
-    //           io.emit('afterselectdriver', driverdata, driver, result);
-    //         } else {
-    //           const filter2 = {
-    //             status: true,
-    //             city_id: city_id,
-    //             assignService: vehicle_id,
-    //             assign: "1",
-    //             _id: { $nin: assigneddrivers }
-    //           };
-    
-    //           const assigndriverdata = driverModel.find(filter2);
-    //           const assigndriverdatalist = await assigndriverdata.exec();
-    
-    //           if (assigndriverdatalist.length > 0) {
-    //             const driverdata = await driverModel.findByIdAndUpdate(data.driver_id, { assign: "0" }, { new: true });
-    //             const result = await createrideModel.findByIdAndUpdate(data._id, {
-    //               created: Date.now(),
-    //               assigned: "hold",
-    //               status: 9,
-    //               driver_id: null
-    //             }, { new: true });
-    //             io.emit('afternulldriverdata', driverdata, result);
-    //           } else {
-    //             const driverdata = await driverModel.findByIdAndUpdate(data.driver_id, { assign: "0" }, { new: true });
-    //             const result = await createrideModel.findByIdAndUpdate(data._id, {
-    //               created: Date.now(),
-    //               nearest: false,
-    //               assigned: "pending",
-    //               status: 0,
-    //               driver_id: null
-    //             }, { new: true });
-    //             io.emit('afternulldriverdata', driverdata, result);
-    //           }
-    //         }
-    //       }
-    //     }
-    //   }
-    // });
-    
-
-
 
     // assign driver in create ride data 
 
@@ -535,12 +431,12 @@ async function initializeSocket(server) {
             // console.log(rejecrtedridedata , "data");
             if(rejecrtedridedata.length > 0){
               const driverdata = await driverModel.findByIdAndUpdate(driver_id, { assign: "0" }, { new: true });
-              const result = await createrideModel.findByIdAndUpdate(ride_id, { created: Date.now(), assigned: "hold", status: 9, driver_id: null }, { new: true });
-              io.emit('riderejected', driverdata ,result)
+              const rideresult = await createrideModel.findByIdAndUpdate(ride_id, { created: Date.now(), assigned: "hold", status: 9, driver_id: null }, { new: true });
+              io.emit('riderejected', driverdata ,rideresult)
             }else{
              const driverdata =  await driverModel.findByIdAndUpdate(driver_id, { assign: "0" }, { new: true });
-              const result = await createrideModel.findByIdAndUpdate(ride_id, { driver_id: null, assigned: "rejected", status: 2, assigndriverarray: [] }, { new: true })
-              io.emit('riderejected', driverdata ,result)
+              const rideresult = await createrideModel.findByIdAndUpdate(ride_id, { driver_id: null, assigned: "rejected", status: 2, assigndriverarray: [] }, { new: true })
+              io.emit('riderejected', driverdata ,rideresult)
             }
 
           }
@@ -679,12 +575,11 @@ async function initializeSocket(server) {
       }
     })
 
-
     socket.on('ridehistory', async (data) => {
       // console.log(data);
       const rideHistoryData = data.data;
       const status = rideHistoryData.status;
-      // console.log(status);
+      console.log(status);
       // const vehicleId = new mongoose.Types.ObjectId(rideHistoryData.vehicle_id);
       const vehicleId = rideHistoryData.vehicle_id;
       // console.log(vehicleId);
@@ -798,8 +693,6 @@ async function initializeSocket(server) {
       }
     });
 
-
-
     socket.on('confirmride', async (data) => {
       // console.log(data);
       const rideHistoryData = data.data;
@@ -902,6 +795,8 @@ async function initializeSocket(server) {
         console.error(error);
       }
     });
+
+
 
     socket.on('disconnect', () => {
       console.log('socket disconnected');
@@ -1146,6 +1041,8 @@ const sendMail = async (req, res) => {
 
 };
 
+
+
 function sendmessage(ride) {
   // console.log(ride , "ridestatusfff");
   try {
@@ -1166,404 +1063,3 @@ module.exports = initializeSocket;
 
 
 
-
-
-
-    // socket.on('ridehistory', async (data) => {
-    //   // console.log(data);
-    //   const rideHistoryData = data.data;
-    //   // console.log(rideHistoryData);
-
-    //   // Accessing individual properties
-    //   const vehicleId = rideHistoryData.vehicle_id;
-    //   // console.log(vehicleId);
-    //   const paymentOptions = rideHistoryData.cashCard;
-    //   // console.log(paymentOptions);
-    //   const fromDate = rideHistoryData.fromdate;
-    //   const toDate = rideHistoryData.todate;
-    //   const pickupLocation = rideHistoryData.pickupLocation;
-    //   const dropoffLocation = rideHistoryData.dropoffLocation;
-
-    //   // console.log(paymentOptions , fromDate , toDate , pickupLocation , dropoffLocation)
-
-    //   try {
-    //     let rideHistoryQuery = createrideModel.aggregate([
-    //       {
-    //         $match: {
-    //           assigned: { $in: ["cancel", "completed"] }
-    //         }
-    //       },
-    //       // Add other stages for filtering based on parameters
-    //       {
-    //         $lookup: {
-    //           from: "users",
-    //           foreignField: "_id",
-    //           localField: "user_id",
-    //           as: "userdata"
-    //         }
-    //       },
-    //       {
-    //         $unwind: "$userdata"
-    //       },
-    //       {
-    //         $lookup: {
-    //           from: "cities",
-    //           foreignField: "_id",
-    //           localField: "city_id",
-    //           as: "citydata"
-    //         }
-    //       },
-    //       {
-    //         $unwind: "$citydata"
-    //       },
-    //       {
-    //         $lookup: {
-    //           from: "vehicles",
-    //           foreignField: "_id",
-    //           localField: "vehicle_id",
-    //           as: "vehicledata"
-    //         }
-    //       },
-    //       {
-    //         $unwind: "$vehicledata"
-    //       },
-    //       {
-    //         $lookup: {
-    //           from: "drivers",
-    //           foreignField: "_id",
-    //           localField: "driver_id",
-    //           as: "driverdata"
-    //         }
-    //       },
-    //       {
-    //         $unwind: {
-    //           path: "$driverdata",
-    //           preserveNullAndEmptyArrays: true
-    //         }
-    //       }
-    //     ]);
-    //     // if(vehicleId){
-    //     //   rideHistoryQuery = rideHistoryQuery.match({vehicle_id : vehicleId });
-    //     // }
-    //     // Apply filters based on parameters
-
-    //     if (paymentOptions) {
-    //       rideHistoryQuery = rideHistoryQuery.match({ paymentoption: paymentOptions });
-    //     }
-    //     if (fromDate && toDate) {
-    //       rideHistoryQuery = rideHistoryQuery.match({
-    //         date: {
-    //           $gte: fromDate,
-    //           $lte: toDate
-    //         }
-    //       });
-    //     }
-    //     if (pickupLocation) {
-    //       const regex = new RegExp(pickupLocation, "i");
-    //       rideHistoryQuery = rideHistoryQuery.match({ startlocation: regex });
-    //     }
-    //     if (dropoffLocation) {
-    //       const regex = new RegExp(dropoffLocation, "i");
-    //       rideHistoryQuery = rideHistoryQuery.match({ destinationlocation: regex });
-    //     }
-
-    //     const rideHistoryData = await rideHistoryQuery.exec();
-
-    //     // Emit the filtered ride history data to the client
-    //     io.emit("ridehistory", { ridehistorydata: rideHistoryData });
-    //     // console.log(rideHistoryData);
-    //   } catch (error) {
-    //     console.error(error);
-    //   }
-    // });
-
-
-
-    // socket.on('ridehistory', async (data) => {
-    //   console.log(data);
-    //   const rideHistoryData = data.data;
-    //   console.log(rideHistoryData);
-
-    //   // Accessing individual properties
-    //   const vehicleId = rideHistoryData.vehicle_id;
-    //   console.log(vehicleId);
-    //   const paymentOptions = rideHistoryData.cashCard;
-    //   console.log(paymentOptions);
-    //   const fromDate = rideHistoryData.fromdate;
-    //   const toDate = rideHistoryData.todate;
-    //   const pickupLocation = rideHistoryData.pickupLocation;
-    //   const dropoffLocation = rideHistoryData.dropoffLocation;
-
-    //   try {
-    //     let rideHistoryQuery = createrideModel.aggregate([
-    //       {
-    //         $match: {
-    //           assigned: { $in: ["cancel", "completed"] },
-    //           $or: [
-    //             { paymentoption: { $regex: paymentOptions, $options: "i" } },
-    //             {
-    //               created: {
-    //                 $gte: fromDate ? new Date(fromDate) : new Date(0),
-    //                 $lte: toDate ? new Date(toDate) : new Date()
-    //               }
-    //             },
-    //             pickupLocation
-    //               ? { startlocation: { $regex: pickupLocation, $options: "i" } }
-    //               : {},
-    //             dropoffLocation
-    //               ? { destinationlocation: { $regex: dropoffLocation, $options: "i" } }
-    //               : {}
-    //           ]
-    //         }
-    //       },
-    //       {
-    //         $facet: {
-    //           filteredData: [
-    //             {
-    //               $lookup: {
-    //                 from: "users",
-    //                 localField: "user_id",
-    //                 foreignField: "_id",
-    //                 as: "userdata"
-    //               }
-    //             },
-    //             {
-    //               $unwind: "$userdata"
-    //             },
-    //             {
-    //               $lookup: {
-    //                 from: "cities",
-    //                 localField: "city_id",
-    //                 foreignField: "_id",
-    //                 as: "citydata"
-    //               }
-    //             },
-    //             {
-    //               $unwind: "$citydata"
-    //             },
-    //             {
-    //               $lookup: {
-    //                 from: "vehicles",
-    //                 localField: "vehicle_id",
-    //                 foreignField: "_id",
-    //                 as: "vehicledata"
-    //               }
-    //             },
-    //             {
-    //               $unwind: "$vehicledata"
-    //             },
-    //             {
-    //               $lookup: {
-    //                 from: "drivers",
-    //                 localField: "driver_id",
-    //                 foreignField: "_id",
-    //                 as: "driverdata"
-    //               }
-    //             },
-    //             {
-    //               $unwind: {
-    //                 path: "$driverdata",
-    //                 preserveNullAndEmptyArrays: true
-    //               }
-    //             },
-    //             {
-    //               $match: {
-    //                 $or: [
-    //                   { paymentoption: paymentOptions },
-    //                   {
-    //                     created: {
-    //                       $gte: fromDate ? new Date(fromDate) : new Date(0),
-    //                       $lte: toDate ? new Date(toDate) : new Date()
-    //                     }
-    //                   },
-    //                   pickupLocation
-    //                     ? { startlocation: { $regex: pickupLocation, $options: "i" } }
-    //                     : {},
-    //                   dropoffLocation
-    //                     ? { destinationlocation: { $regex: dropoffLocation, $options: "i" } }
-    //                     : {}
-    //                 ]
-    //               }
-    //             }
-    //           ],
-    //           totalCount: [
-    //             {
-    //               $match: {
-    //                 assigned: { $in: ["cancel", "completed"] }
-    //               }
-    //             },
-    //             {
-    //               $count: "count"
-    //             }
-    //           ]
-    //         }
-    //       }
-
-    //     ]);
-
-    //     const rideHistoryResult = await rideHistoryQuery.exec();
-    //     const filteredData = rideHistoryResult[0].filteredData;
-    //     const totalCount = rideHistoryResult[0].totalCount;
-
-    //     io.emit("ridehistory", { ridehistorydata: filteredData, totalCount });
-    //     console.log(filteredData);
-    //   } catch (error) {
-    //     console.error(error);
-    //   }
-    // });
-
-
-    // socket.on('ridehistory', async (data) => {
-    //   console.log(data);
-    //   const paymentoptions = data. cashCard;
-    //   const fromdate = data.fromdate;
-    //   const todate = data.todate;
-    //   const pickupLocation = data.pickupLocation;
-    //   const dropoffLocation = data.dropoffLocation;
-
-    //   try {
-    //     let ridehistory = createrideModel.aggregate([
-    //       {
-    //         $match: {
-    //           assigned: { $in: ["cancel", "completed"] }
-    //         },
-    //       },
-    //       {
-    //         $lookup: {
-    //           from: "users",
-    //           foreignField: "_id",
-    //           localField: "user_id",
-    //           as: "userdata",
-    //         },
-    //       },
-    //       {
-    //         $unwind: "$userdata",
-    //       },
-    //       {
-    //         $lookup: {
-    //           from: "cities",
-    //           foreignField: "_id",
-    //           localField: "city_id",
-    //           as: "citydata",
-    //         },
-    //       },
-    //       {
-    //         $unwind: "$citydata",
-    //       },
-    //       {
-    //         $lookup: {
-    //           from: "vehicles",
-    //           foreignField: "_id",
-    //           localField: "vehicle_id",
-    //           as: "vehicledata",
-    //         },
-    //       },
-    //       {
-    //         $unwind: "$vehicledata"
-    //       },
-    //       {
-    //         $lookup: {
-    //           from: "drivers",
-    //           foreignField: "_id",
-    //           localField: "driver_id",
-    //           as: "driverdata",
-    //         },
-    //       },
-    //       {
-    //         $unwind: {
-    //           path: "$driverdata",
-    //           preserveNullAndEmptyArrays: true,
-    //         },
-    //       }
-    //     ]);
-
-    //     const ridehistorydata = await ridehistory.exec();
-
-    //     // console.log(ridehistorydata);
-
-    //     // Emit the 'runningrequest' event with the driver data to the client
-    //     io.emit("ridehistory", { ridehistorydata });
-    //   } catch (error) {
-    //     console.error(error);
-    //   }
-    // });
-
-
-
-    // socket.on('ridehistorydata', async (data) => {
-    //   const search = data.search;
-    //   let skip = (page - 1) * limit;
-
-
-    //   try {
-    //     let query = {};
-    //     if (search) {
-    //       query = {
-    //         $or: [
-    //           { startlocation: { $regex: search, $options: "i" } },
-    //           { destinationlocation: { $regex: search, $options: "i" } },
-    //         ],
-    //         assigned: { $in: ["cancel", "completed"] }
-    //       };
-    //     }
-
-
-    //     let ridehistory = createrideModel.aggregate([
-    //       {
-    //         $lookup: {
-    //           from: "users",
-    //           foreignField: "_id",
-    //           localField: "user_id",
-    //           as: "userdata",
-    //         },
-    //       },
-    //       {
-    //         $unwind: "$userdata",
-    //       },
-    //       {
-    //         $lookup: {
-    //           from: "cities",
-    //           foreignField: "_id",
-    //           localField: "city_id",
-    //           as: "citydata",
-    //         },
-    //       },
-    //       {
-    //         $unwind: "$citydata",
-    //       },
-    //       {
-    //         $lookup: {
-    //           from: "vehicles",
-    //           foreignField: "_id",
-    //           localField: "vehicle_id",
-    //           as: "vehicledata",
-    //         },
-    //       },
-    //       {
-    //         $unwind: "$vehicledata"
-    //       },
-    //       {
-    //         $lookup: {
-    //           from: "drivers",
-    //           foreignField: "_id",
-    //           localField: "driver_id",
-    //           as: "driverdata",
-    //         },
-    //       },
-    //       {
-    //         $unwind: {
-    //           path: "$driverdata",
-    //           preserveNullAndEmptyArrays: true,
-    //         },
-    //       },
-    //       { $match: query }, // Apply search query
-
-    //     ]);
-    //     const ridehistorydata = await ridehistory.exec();
-    //     // console.log(ridehistorydata);
-    //     io.emit("ridehistory", { ridehistorydata });
-    //   } catch (error) {
-    //     // console.log(error);
-    //     io.emit("ridehistory", error)
-    //   }
-    // })
